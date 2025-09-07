@@ -17,7 +17,7 @@ interface Gestor {
   email: string
   academia_id: string
   created_at: string
-  academias: Academia[]
+  academias: Academia
 }
 
 export default function GestoresPage() {
@@ -77,7 +77,7 @@ export default function GestoresPage() {
           email,
           academia_id,
           created_at,
-          academias (
+          academias!inner (
             id,
             nombre,
             activa
@@ -87,7 +87,14 @@ export default function GestoresPage() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setGestores(data || [])
+      
+      // Transform data to match expected type
+      const transformedData = data?.map((item: any) => ({
+        ...item,
+        academias: Array.isArray(item.academias) ? item.academias[0] : item.academias
+      })) || []
+      
+      setGestores(transformedData)
     } catch (err) {
       console.error('Error cargando gestores:', err)
     }
@@ -108,7 +115,7 @@ export default function GestoresPage() {
     }
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault()
     setIsSubmitting(true)
     
@@ -264,7 +271,7 @@ export default function GestoresPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {gestores.map((gestor) => (
+                {gestores.map((gestor: Gestor) => (
                   <tr key={gestor.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
@@ -273,15 +280,15 @@ export default function GestoresPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {gestor.academias?.[0]?.nombre || 'Sin academia'}
+                      {gestor.academias?.nombre || 'Sin academia'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        gestor.academias?.[0]?.activa
+                        gestor.academias?.activa
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {gestor.academias?.[0]?.activa ? 'Activa' : 'Inactiva'}
+                        {gestor.academias?.activa ? 'Activa' : 'Inactiva'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
