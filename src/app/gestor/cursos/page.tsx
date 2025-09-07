@@ -99,7 +99,14 @@ export default function GestorCursosPage() {
         .order('created_at', { ascending: false })
 
       if (error) throw error
-      setCursos(data || [])
+      
+      // Transform data to match expected type - convert profesores array to single object
+      const transformedData = data?.map((curso: any) => ({
+        ...curso,
+        profesores: Array.isArray(curso.profesores) ? curso.profesores[0] : curso.profesores
+      })) || []
+      
+      setCursos(transformedData)
     } catch (err) {
       console.error('Error cargando cursos:', err)
     }

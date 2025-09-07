@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
+export async function GET(request: NextRequest) {
+  try {
+    const supabase = createRouteHandlerClient({ cookies })
+    
+    // Test data insertion
+    const testData = {
+      session_id: 'test-session-123',
+      user_id: 'test-user-456',
+      video_id: 'test-video-789',
+      watch_time_seconds: 30,
+      event_type: 'play'
+    }
+
+    const { data, error } = await supabase
+      .from('video_tracking')
+      .insert(testData)
+      .select()
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ 
+      message: 'Test data inserted successfully',
+      data 
+    })
+  } catch (error: any) {
+    return NextResponse.json({ 
+      error: error.message || 'Internal server error' 
+    }, { status: 500 })
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies })
