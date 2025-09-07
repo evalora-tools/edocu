@@ -17,7 +17,7 @@ interface Gestor {
   email: string
   academia_id: string
   created_at: string
-  academias: Academia
+  academias: Academia[]
 }
 
 export default function GestoresPage() {
@@ -273,15 +273,15 @@ export default function GestoresPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {gestor.academias?.nombre || 'Sin academia'}
+                      {gestor.academias?.[0]?.nombre || 'Sin academia'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        gestor.academias?.activa
+                        gestor.academias?.[0]?.activa
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}>
-                        {gestor.academias?.activa ? 'Activa' : 'Inactiva'}
+                        {gestor.academias?.[0]?.activa ? 'Activa' : 'Inactiva'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
