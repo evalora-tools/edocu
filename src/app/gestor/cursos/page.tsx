@@ -103,7 +103,9 @@ export default function GestorCursosPage() {
       // Transform data to match expected type - convert profesores array to single object
       const transformedData = data?.map((curso: any) => ({
         ...curso,
-        profesores: Array.isArray(curso.profesores) ? curso.profesores[0] : curso.profesores
+        profesores: Array.isArray(curso.profesores) && curso.profesores.length > 0 
+          ? curso.profesores[0] 
+          : curso.profesores
       })) || []
       
       setCursos(transformedData)
