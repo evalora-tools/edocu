@@ -81,7 +81,8 @@ export async function POST(request: Request) {
     }
 
     // Crear perfil en la tabla profiles
-    const { error: profileError } = await supabase
+
+    const { error: insertProfileError } = await supabase
       .from('profiles')
       .insert({
         id: authData.user.id,
@@ -91,10 +92,10 @@ export async function POST(request: Request) {
         academia_id
       })
 
-    if (profileError) {
+    if (insertProfileError) {
       // Si falla la creación del perfil, intentar eliminar el usuario de Auth
-      console.error('Error creando perfil:', profileError)
-      throw new Error(`Error creando perfil: ${profileError.message}`)
+      console.error('Error creando perfil:', insertProfileError)
+      throw new Error(`Error creando perfil: ${insertProfileError.message}`)
     }
 
     return NextResponse.json({ 
