@@ -3,8 +3,13 @@ import type { Metadata } from 'next'
 import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata: Metadata = {
-  title: 'Educaweb',
+  title: 'Edocu | Plataforma Virtual',
   description: 'Plataforma de cursos de Academias',
+  icons: {
+    icon: '/favicon.ico',
+    shortcut: '/favicon.ico',
+    apple: '/favicon.ico',
+  }
 }
 
 export default function RootLayout({
@@ -14,9 +19,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="es">
-      <head>
-        <link rel="icon" href="/favicon.ico" />
-      </head>
       <body>
         <AuthProvider>
           {children}
