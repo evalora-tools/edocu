@@ -10,7 +10,12 @@ export default function Home() {
   const [loadingState, setLoadingState] = useState<string>('Iniciando...')
 
   useEffect(() => {
-    if (!initialized || loading) {
+    if (!initialized) {
+      setLoadingState('Inicializando...')
+      return
+    }
+
+    if (loading) {
       setLoadingState('Verificando sesión...')
       return
     }
@@ -20,6 +25,11 @@ export default function Home() {
       setTimeout(() => {
         router.replace('/login')
       }, 500)
+      return
+    }
+
+    if (!profile) {
+      setLoadingState('Cargando perfil...')
       return
     }
 
@@ -35,6 +45,8 @@ export default function Home() {
           router.replace('/profesor')
         } else if (profile.role === 'alumno') {
           router.replace('/alumno')
+        } else {
+          router.replace('/login')
         }
       }, 500)
     }
