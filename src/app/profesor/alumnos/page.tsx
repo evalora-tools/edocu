@@ -304,7 +304,7 @@ export default function ProfesorAlumnosPage() {
                   {cursosProfesor.map((curso) => (
                     <div 
                       key={curso.id} 
-                      onClick={() => router.push(`/asignatura/${curso.id}`)}
+                      onClick={() => router.push(`/profesor/curso/${curso.id}`)}
                       className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-600 hover:bg-gray-50 hover:text-gray-900 cursor-pointer"
                     >
                       <span className="w-6 h-6 bg-blue-600 rounded text-white text-xs flex items-center justify-center mr-3">

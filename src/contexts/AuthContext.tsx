@@ -34,6 +34,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<void>
   signOut: () => Promise<void>
   isAdmin: boolean
+  initialized: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -43,78 +44,136 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [academia, setAcademia] = useState<Academia | null>(null)
   const [loading, setLoading] = useState(true)
+  const [initialized, setInitialized] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
     let mounted = true
+    let timeoutId: NodeJS.Timeout
+    let subscription: any
 
-    const checkSession = async () => {
+    const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
+        // Verificar si estamos en el navegador
+        if (typeof window === 'undefined') return
+        
+        // Pequeña pausa para asegurar hidratación completa
+        await new Promise(resolve => setTimeout(resolve, 50))
+        
+        const { data: { session }, error } = await supabase.auth.getSession()
+        
+        if (error) {
+          console.error('Error getting session:', error)
+          if (mounted) {
+            setUser(null)
+            setProfile(null)
+            setAcademia(null)
+            setInitialized(true)
+            setLoading(false)
+          }
+          return
+        }
         
         if (!mounted) return
         
         if (session?.user) {
           setUser(session.user)
-          const { data: profileData, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single()
-
-          if (profileError) throw profileError
           
-          let academiaData = null
-          if (profileData.academia_id) {
-            const { data: academia } = await supabase
-              .from('academias')
+          try {
+            const { data: profileData, error: profileError } = await supabase
+              .from('profiles')
               .select('*')
-              .eq('id', profileData.academia_id)
+              .eq('id', session.user.id)
               .single()
-            academiaData = academia
-          }
 
-          if (!mounted) return
-          
-          setProfile(profileData)
-          setAcademia(academiaData)
-          
-          if (window?.location.pathname === '/login') {
-            if (profileData.role === 'admin') {
-              router.push('/admin')
-            } else if (profileData.role === 'gestor') {
-              router.push('/gestor')
-            } else if (profileData.role === 'profesor') {
-              router.push('/profesor')
-            } else if (profileData.role === 'alumno') {
-              router.push('/alumno')
-            } else {
-              router.push('/')
+            if (profileError) throw profileError
+            
+            let academiaData = null
+            if (profileData.academia_id) {
+              const { data: academia } = await supabase
+                .from('academias')
+                .select('*')
+                .eq('id', profileData.academia_id)
+                .single()
+              academiaData = academia
+            }
+
+            if (!mounted) return
+            
+            setProfile(profileData)
+            setAcademia(academiaData)
+            
+            // Dar tiempo para que la página se cargue antes de redirigir
+            timeoutId = setTimeout(() => {
+              if (!mounted) return
+              
+              const currentPath = window?.location.pathname
+              
+              if (currentPath === '/login') {
+                redirectToRolePage(profileData.role)
+              } else if (currentPath !== '/' && !currentPath.startsWith(`/${profileData.role}`)) {
+                const rolePages = ['/admin', '/gestor', '/profesor', '/alumno']
+                const isRolePage = rolePages.some(page => currentPath.startsWith(page))
+                
+                if (isRolePage) {
+                  redirectToRolePage(profileData.role)
+                }
+              }
+            }, 100)
+          } catch (profileError) {
+            console.error('Error loading profile:', profileError)
+            if (mounted) {
+              setUser(null)
+              setProfile(null)
+              setAcademia(null)
             }
           }
         } else {
           setUser(null)
           setProfile(null)
           setAcademia(null)
-          if (window?.location.pathname !== '/login') {
-            router.push('/login')
-          }
+          
+          timeoutId = setTimeout(() => {
+            if (!mounted) return
+            const currentPath = window?.location.pathname
+            if (currentPath !== '/login' && currentPath !== '/') {
+              router.push('/login')
+            }
+          }, 100)
         }
       } catch (error) {
-        console.error('Error checking session:', error)
-        setUser(null)
-        setProfile(null)
-        setAcademia(null)
+        console.error('Error initializing auth:', error)
+        if (mounted) {
+          setUser(null)
+          setProfile(null)
+          setAcademia(null)
+        }
       } finally {
         if (mounted) {
+          setInitialized(true)
           setLoading(false)
         }
       }
     }
 
-    checkSession()
+    const redirectToRolePage = (role: string) => {
+      if (role === 'admin') {
+        router.push('/admin')
+      } else if (role === 'gestor') {
+        router.push('/gestor')
+      } else if (role === 'profesor') {
+        router.push('/profesor')
+      } else if (role === 'alumno') {
+        router.push('/alumno')
+      } else {
+        router.push('/')
+      }
+    }
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    initializeAuth()
+
+    // Configurar listener de cambios de auth
+    const authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
 
       if (session?.user) {
@@ -147,41 +206,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const currentPath = window?.location.pathname
         if (event === 'SIGNED_IN' || currentPath === '/login') {
-          if (profileData.role === 'admin') {
-            router.push('/admin')
-          } else if (profileData.role === 'gestor') {
-            router.push('/gestor')
-          } else if (profileData.role === 'profesor') {
-            router.push('/profesor')
-          } else if (profileData.role === 'alumno') {
-            router.push('/alumno')
-          } else {
-            router.push('/')
-          }
+          redirectToRolePage(profileData.role)
         }
       } else {
         setUser(null)
         setProfile(null)
         setAcademia(null)
-        if (window?.location.pathname !== '/login') {
+        const currentPath = window?.location.pathname
+        if (currentPath !== '/login' && currentPath !== '/') {
           router.push('/login')
         }
       }
     })
 
+    subscription = authSubscription.data.subscription
+
     return () => {
       mounted = false
-      subscription.unsubscribe()
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+      }
+      if (subscription) {
+        subscription.unsubscribe()
+      }
     }
   }, [router])
 
   const signIn = async (email: string, password: string) => {
     try {
-      // Solo cerrar sesión si hay una activa
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         await supabase.auth.signOut()
-        // Pequeña pausa después del signOut para evitar rate limiting
         await new Promise(resolve => setTimeout(resolve, 500))
       }
       
@@ -213,7 +268,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const isAdmin = profile?.role === 'admin'
 
   return (
-    <AuthContext.Provider value={{ user, profile, academia, loading, signIn, signOut, isAdmin }}>
+    <AuthContext.Provider value={{ user, profile, academia, loading, signIn, signOut, isAdmin, initialized }}>
       {children}
     </AuthContext.Provider>
   )

@@ -65,6 +65,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
     clases: Contenido[]
   }>({ apuntes: [], problemas: [], clases: [] })
   const [loading, setLoading] = useState(true)
+  const [loadingState, setLoadingState] = useState<string>('Iniciando...')
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [playerData, setPlayerData] = useState<{ otp: string; playbackInfo: string } | null>(null)
   const [showPlayerModal, setShowPlayerModal] = useState(false)
@@ -131,13 +132,18 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
 
   useEffect(() => {
     const init = async () => {
+      if (!params.id) return
+
       try {
+        setLoadingState('Verificando sesión...')
+        
         const { data: { session } } = await supabase.auth.getSession()
         if (!session) {
-          setLoading(false)
           router.replace('/login')
           return
         }
+
+        setLoadingState('Verificando acceso al curso...')
 
         const { data: profile } = await supabase
           .from('profiles')
@@ -146,16 +152,22 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           .single()
 
         if (!profile || profile.role !== 'alumno') {
-          setLoading(false)
-          router.replace('/')
+          setLoadingState('Sin acceso')
+          setTimeout(() => {
+            router.replace('/')
+          }, 1500)
           return
         }
 
         if (!profile.cursos_adquiridos?.includes(params.id)) {
-          setLoading(false)
-          router.replace('/alumno')
+          setLoadingState('Sin acceso a este curso')
+          setTimeout(() => {
+            router.replace('/alumno')
+          }, 1500)
           return
         }
+
+        setLoadingState('Cargando información del curso...')
 
         const { data: cursoData, error: cursoError } = await supabase
           .from('cursos')
@@ -165,12 +177,16 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           .single()
 
         if (cursoError || !cursoData) {
-          setLoading(false)
-          router.replace('/alumno')
+          setLoadingState('Curso no encontrado')
+          setTimeout(() => {
+            router.replace('/alumno')
+          }, 1500)
           return
         }
 
         setCurso(cursoData)
+
+        setLoadingState('Cargando información de la academia...')
 
         // Cargar información de la academia
         const { data: academiaData, error: academiaError } = await supabase
@@ -184,6 +200,8 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
         } else {
           setAcademia(academiaData)
         }
+
+        setLoadingState('Cargando tus cursos...')
 
         // Cargar todos los cursos del alumno para el sidebar
         const cursosIds: string[] = profile.cursos_adquiridos || []
@@ -202,6 +220,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           }
         }
 
+        setLoadingState('Cargando contenido del curso...')
 
         // Cargar secciones del curso
         const { data: seccionesData } = await supabase
@@ -225,11 +244,17 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           })
         }
 
-        setLoading(false)
+        setLoadingState('Finalizando...')
+        setTimeout(() => {
+          setLoading(false)
+        }, 500)
+
       } catch (error) {
         console.error('Error:', error)
-        setLoading(false)
-        router.replace('/login')
+        setLoadingState('Error de conexión')
+        setTimeout(() => {
+          router.replace('/login')
+        }, 1500)
       }
     }
 
@@ -241,24 +266,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
         <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 flex items-center gap-4 border border-white/30">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <div className="text-lg font-medium text-gray-700">Cargando curso...</div>
-        </div>
-      </div>
-    )
-  }
-
-  if (!curso) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 text-center border border-white/30 max-w-md">
-          <div className="text-xl font-semibold text-gray-800 mb-2">Curso no encontrado</div>
-          <div className="text-gray-600 mb-6">Este curso no existe o no tienes acceso a él</div>
-          <button
-            onClick={() => router.push('/alumno')}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
-          >
-            Volver a mis cursos
-          </button>
+          <div className="text-lg font-medium text-gray-700">{loadingState}</div>
         </div>
       </div>
     )
@@ -267,6 +275,9 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
   const clasesDisponibles = contenidos.clases
     .filter(c => c.archivo_url)
     .filter(c => (c.estado_procesamiento ? c.estado_procesamiento === 'ready' : true))
+
+  // Si no hay curso después de la carga, no renderizar nada (ya se maneja en el useEffect)
+  if (!curso) return null
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">

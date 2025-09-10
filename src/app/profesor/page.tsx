@@ -21,6 +21,7 @@ interface Academia {
 export default function ProfesorPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
+  const [loadingState, setLoadingState] = useState<string>('Iniciando...')
   const [cursos, setCursos] = useState<Curso[]>([])
   const [academia, setAcademia] = useState<Academia | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
@@ -28,13 +29,19 @@ export default function ProfesorPage() {
   useEffect(() => {
     const checkProfesor = async () => {
       try {
+        setLoadingState('Verificando sesión...')
+        
         const { data: { session } } = await supabase.auth.getSession()
         
         if (!session) {
-          setLoading(false)
-          router.replace('/login')
+          setLoadingState('Sin sesión')
+          setTimeout(() => {
+            router.replace('/login')
+          }, 1500)
           return
         }
+
+        setLoadingState('Verificando permisos...')
 
         const { data: profile } = await supabase
           .from('profiles')
@@ -43,16 +50,27 @@ export default function ProfesorPage() {
           .single()
 
         if (!profile || profile.role !== 'profesor') {
-          setLoading(false)
-          router.replace('/')
+          setLoadingState('Sin acceso de profesor')
+          setTimeout(() => {
+            router.replace('/')
+          }, 1500)
           return
         }
 
-        setLoading(false)
-        fetchData(session.user.id, profile.academia_id)
+        setLoadingState('Cargando información...')
+        await fetchData(session.user.id, profile.academia_id)
+        
+        setLoadingState('Finalizando...')
+        setTimeout(() => {
+          setLoading(false)
+        }, 500)
+
       } catch (error) {
         console.error('Error:', error)
-        router.replace('/login')
+        setLoadingState('Error de conexión')
+        setTimeout(() => {
+          router.replace('/login')
+        }, 1500)
       }
     }
 
@@ -61,6 +79,8 @@ export default function ProfesorPage() {
 
   const fetchData = async (profesorId: string, academiaId: string) => {
     try {
+      setLoadingState('Cargando información de la academia...')
+      
       // Cargar información de la academia
       const { data: academiaData, error: academiaError } = await supabase
         .from('academias')
@@ -73,6 +93,8 @@ export default function ProfesorPage() {
       } else {
         setAcademia(academiaData)
       }
+
+      setLoadingState('Cargando cursos asignados...')
 
       // Primero obtenemos el perfil del profesor para ver sus cursos asignados
       const { data: profileData, error: profileError } = await supabase
@@ -87,6 +109,8 @@ export default function ProfesorPage() {
       }
 
       const cursosAsignados = profileData?.cursos_asignados || []
+
+      setLoadingState('Cargando detalles de los cursos...')
 
       // Obtener los cursos asignados al profesor
       const { data: cursosData, error: cursosError } = await supabase
@@ -109,8 +133,11 @@ export default function ProfesorPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Cargando...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 flex items-center gap-4 border border-white/30">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="text-lg font-medium text-gray-700">{loadingState}</div>
+        </div>
       </div>
     )
   }

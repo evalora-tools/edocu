@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface Curso {
   id: string
@@ -11,57 +12,40 @@ interface Curso {
   curso_academico: string
 }
 
-interface Academia {
-  id: string
-  nombre: string
-}
-
 export default function AlumnoPage() {
   const router = useRouter()
-  const [loading, setLoading] = useState(true)
+  const { user, profile, academia, loading: authLoading, initialized, signOut } = useAuth()
+  const [cursosLoading, setCursosLoading] = useState(true)
   const [cursos, setCursos] = useState<Curso[]>([])
-  const [academia, setAcademia] = useState<Academia | null>(null)
+  const [mounted, setMounted] = useState(false)
+
+  // Manejar hidratación del cliente
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
-    const init = async () => {
+    // Solo ejecutar si el componente está montado y el auth está inicializado
+    if (!mounted || !initialized || authLoading) {
+      return
+    }
+
+    // Si no hay usuario o no es alumno, no cargar cursos
+    if (!user || !profile || profile.role !== 'alumno') {
+      setCursosLoading(false)
+      return
+    }
+
+    const loadCursos = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession()
-        if (!session) {
-          setLoading(false)
-          router.replace('/login')
-          return
-        }
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, cursos_adquiridos, academia_id')
-          .eq('id', session.user.id)
-          .single()
-
-        if (!profile || profile.role !== 'alumno') {
-          setLoading(false)
-          router.replace('/')
-          return
-        }
-
-        // Cargar información de la academia
-        const { data: academiaData, error: academiaError } = await supabase
-          .from('academias')
-          .select('id, nombre')
-          .eq('id', profile.academia_id)
-          .single()
-
-        if (academiaError) {
-          console.error('Error cargando academia:', academiaError)
-        } else {
-          setAcademia(academiaData)
-        }
-
+        // Pequeña pausa adicional para asegurar que todo esté listo
+        await new Promise(resolve => setTimeout(resolve, 100))
+        
         const cursosIds: string[] = profile.cursos_adquiridos || []
 
         if (cursosIds.length === 0) {
           setCursos([])
-          setLoading(false)
+          setCursosLoading(false)
           return
         }
 
@@ -79,19 +63,60 @@ export default function AlumnoPage() {
           setCursos(cursosData || [])
         }
       } catch (err) {
-        console.error('Error inicializando panel de alumno:', err)
+        console.error('Error cargando cursos:', err)
       } finally {
-        setLoading(false)
+        setCursosLoading(false)
       }
     }
 
-    init()
-  }, [router])
+    loadCursos()
+  }, [user, profile, authLoading, initialized, mounted, router])
 
-  if (loading) {
+  // Estados de carga secuenciales para evitar flashing
+  if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Cargando...</div>
+        <div className="text-lg">Iniciando...</div>
+      </div>
+    )
+  }
+
+  if (!initialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Verificando sesión...</div>
+      </div>
+    )
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Cargando perfil...</div>
+      </div>
+    )
+  }
+
+  if (!user || !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Redirigiendo...</div>
+      </div>
+    )
+  }
+
+  if (profile.role !== 'alumno') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg text-red-600">Acceso denegado</div>
+      </div>
+    )
+  }
+
+  if (cursosLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-lg">Cargando cursos...</div>
       </div>
     )
   }
@@ -113,6 +138,19 @@ export default function AlumnoPage() {
               <div className="ml-4">
                 <h1 className="text-xl font-medium text-gray-900">{academia?.nombre || 'Classroom'}</h1>
               </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-gray-600">
+                Hola, {profile?.nombre || 'Alumno'}
+              </span>
+              <button
+                onClick={async () => {
+                  await signOut()
+                }}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Cerrar sesión
+              </button>
             </div>
           </div>
         </div>

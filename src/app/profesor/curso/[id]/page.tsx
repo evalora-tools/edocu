@@ -47,6 +47,7 @@ export default function ProfesorCursoPage() {
   const cursoId = params.id as string
 
   const [loading, setLoading] = useState(true)
+  const [loadingState, setLoadingState] = useState<string>('Iniciando...')
   const [curso, setCurso] = useState<Curso | null>(null)
   const [academia, setAcademia] = useState<Academia | null>(null)
   const [cursos, setCursos] = useState<Curso[]>([])
@@ -84,13 +85,19 @@ export default function ProfesorCursoPage() {
   useEffect(() => {
     const checkProfesor = async () => {
       try {
+        setLoadingState('Verificando sesión...')
+        
         const { data: { session } } = await supabase.auth.getSession()
         
         if (!session) {
-          setLoading(false)
-          router.replace('/login')
+          setLoadingState('Sin sesión')
+          setTimeout(() => {
+            router.replace('/login')
+          }, 1500)
           return
         }
+
+        setLoadingState('Verificando permisos...')
 
         const { data: profile } = await supabase
           .from('profiles')
@@ -99,22 +106,35 @@ export default function ProfesorCursoPage() {
           .single()
 
         if (!profile || profile.role !== 'profesor') {
-          setLoading(false)
-          router.replace('/')
+          setLoadingState('Sin acceso de profesor')
+          setTimeout(() => {
+            router.replace('/')
+          }, 1500)
           return
         }
 
         if (!profile.cursos_asignados?.includes(cursoId)) {
-          setLoading(false)
-          router.replace('/profesor')
+          setLoadingState('Sin acceso a este curso')
+          setTimeout(() => {
+            router.replace('/profesor')
+          }, 1500)
           return
         }
 
-        setLoading(false)
-        fetchData(session.user.id, profile.academia_id)
+        setLoadingState('Cargando información del curso...')
+        await fetchData(session.user.id, profile.academia_id)
+        
+        setLoadingState('Finalizando...')
+        setTimeout(() => {
+          setLoading(false)
+        }, 500)
+
       } catch (error) {
         console.error('Error:', error)
-        router.replace('/login')
+        setLoadingState('Error de conexión')
+        setTimeout(() => {
+          router.replace('/login')
+        }, 1500)
       }
     }
 
@@ -244,19 +264,8 @@ export default function ProfesorCursoPage() {
 
   const fetchData = async (profesorId: string, academiaId: string) => {
     try {
-      // Cargar secciones del curso
-      const { data: seccionesData, error: seccionesError } = await supabase
-        .from('secciones')
-        .select('*')
-        .eq('curso_id', cursoId)
-        .order('orden', { ascending: true })
-
-      if (seccionesError) {
-        console.error('Error cargando secciones:', seccionesError)
-      } else {
-        setSecciones(seccionesData || [])
-      }
-
+      setLoadingState('Cargando información de la academia...')
+      
       // Cargar información de la academia
       const { data: academiaData, error: academiaError } = await supabase
         .from('academias')
@@ -269,6 +278,8 @@ export default function ProfesorCursoPage() {
       } else {
         setAcademia(academiaData)
       }
+
+      setLoadingState('Cargando información del curso...')
 
       // Cargar información del curso
       const { data: cursoData, error: cursoError } = await supabase
@@ -283,6 +294,8 @@ export default function ProfesorCursoPage() {
       }
 
       setCurso(cursoData)
+
+      setLoadingState('Cargando tus cursos...')
 
       // Cargar todos los cursos del profesor para el sidebar
       const { data: profileData, error: profileError } = await supabase
@@ -311,6 +324,23 @@ export default function ProfesorCursoPage() {
       }
 
       setCursos(cursosData || [])
+
+      setLoadingState('Cargando secciones del curso...')
+
+      // Cargar secciones del curso
+      const { data: seccionesData, error: seccionesError } = await supabase
+        .from('secciones')
+        .select('*')
+        .eq('curso_id', cursoId)
+        .order('orden', { ascending: true })
+
+      if (seccionesError) {
+        console.error('Error cargando secciones:', seccionesError)
+      } else {
+        setSecciones(seccionesData || [])
+      }
+
+      setLoadingState('Cargando contenidos del curso...')
 
       // Cargar contenidos del curso
       const { data: contenidosData, error: contenidosError } = await supabase
@@ -561,19 +591,17 @@ export default function ProfesorCursoPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Cargando...</div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 flex items-center gap-4 border border-white/30">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <div className="text-lg font-medium text-gray-700">{loadingState}</div>
+        </div>
       </div>
     )
   }
 
-  if (!curso) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Curso no encontrado</div>
-      </div>
-    )
-  }
+  // Si no hay curso después de la carga, no renderizar nada (ya se maneja en el useEffect)
+  if (!curso) return null
 
   const getContenidosByTipo = (tipo: string) => {
     const filtered = contenidos.filter(c => c.tipo === tipo)
@@ -649,6 +677,7 @@ export default function ProfesorCursoPage() {
         <div className="w-64 fixed left-0 top-16 bottom-0 bg-white border-r border-gray-200 overflow-y-auto">
           <nav className="mt-5 px-2">
             <div className="space-y-1">
+
               <div 
                 onClick={() => router.push('/profesor')}
                 className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer"
@@ -659,6 +688,18 @@ export default function ProfesorCursoPage() {
                   </svg>
                 </span>
                 Inicio
+              </div>
+
+              <div
+                onClick={() => router.push('/profesor/alumnos')}
+                className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer"
+              >
+                <span className="w-6 h-6 bg-green-600 rounded text-white text-xs flex items-center justify-center mr-3">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 6.292 4 4 0 000-6.292zM15 21H3v-1a6 6 0 0112 0v1z" />
+                  </svg>
+                </span>
+                Mis alumnos
               </div>
 
               <div className="mt-8">
