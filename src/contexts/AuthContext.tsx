@@ -52,6 +52,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let timeoutId: NodeJS.Timeout
     let subscription: any
 
+    // Limpiar sesión al cerrar pestaña/navegador
+    const handleBeforeUnload = () => {
+      supabase.auth.signOut()
+      sessionStorage.clear()
+    }
+
+    // Agregar event listener para limpiar sesión
+    if (typeof window !== 'undefined') {
+      window.addEventListener('beforeunload', handleBeforeUnload)
+    }
+
     const initializeAuth = async () => {
       try {
         console.log('🔍 Iniciando AuthContext...')
@@ -259,6 +270,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (subscription) {
         subscription.unsubscribe()
       }
+      // Limpiar event listener
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('beforeunload', handleBeforeUnload)
+      }
     }
   }, [router])
 
@@ -288,6 +303,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { error } = await supabase.auth.signOut()
       if (error) throw error
+      
+      // Limpiar storage manual
+      sessionStorage.clear()
+      
+      // Limpiar estados
+      setUser(null)
+      setProfile(null)
+      setAcademia(null)
+      
       router.push('/login')
     } catch (error) {
       console.error('Error en signOut:', error)

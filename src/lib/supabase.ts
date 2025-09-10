@@ -1,4 +1,4 @@
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/supabase'
 
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -10,8 +10,24 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
 }
 
 // El cliente de Supabase para componentes del lado del cliente
-export const supabase = createClientComponentClient<Database>({
-  options: {
+export const supabase = createClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  {
+    auth: {
+      persistSession: false, // No persistir sesión al cerrar pestaña
+      storage: {
+        getItem: (key: string) => {
+          return sessionStorage.getItem(key)
+        },
+        setItem: (key: string, value: string) => {
+          sessionStorage.setItem(key, value)
+        },
+        removeItem: (key: string) => {
+          sessionStorage.removeItem(key)
+        }
+      }
+    },
     global: {
       headers: {
         'X-Client-Info': 'academias-platform'
@@ -24,7 +40,7 @@ export const supabase = createClientComponentClient<Database>({
       }
     }
   }
-})
+)
 
 // Función helper para manejar errores de Supabase de manera consistente
 export function handleSupabaseError(error: any): never {
