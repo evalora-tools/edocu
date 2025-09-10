@@ -54,16 +54,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const initializeAuth = async () => {
       try {
+        console.log('🔍 Iniciando AuthContext...')
+        
         // Verificar si estamos en el navegador
-        if (typeof window === 'undefined') return
+        if (typeof window === 'undefined') {
+          console.log('⚠️ Ejecutándose en servidor, saltando...')
+          return
+        }
+        
+        console.log('🌐 Ejecutándose en cliente, continuando...')
         
         // Pequeña pausa para asegurar hidratación completa
         await new Promise(resolve => setTimeout(resolve, 50))
         
+        console.log('📡 Obteniendo sesión de Supabase...')
         const { data: { session }, error } = await supabase.auth.getSession()
         
         if (error) {
-          console.error('Error getting session:', error)
+          console.error('❌ Error getting session:', error)
           if (mounted) {
             setUser(null)
             setProfile(null)
@@ -74,9 +82,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
         
+        console.log('✅ Sesión obtenida:', session?.user?.id ? 'Usuario logueado' : 'Sin usuario')
+        
         if (!mounted) return
         
         if (session?.user) {
+          console.log('👤 Usuario encontrado, cargando perfil...')
           setUser(session.user)
           
           try {
@@ -86,16 +97,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               .eq('id', session.user.id)
               .single()
 
-            if (profileError) throw profileError
+            if (profileError) {
+              console.error('❌ Error cargando perfil:', profileError)
+              throw profileError
+            }
+            
+            console.log('✅ Perfil cargado:', profileData.role, profileData.academia_id)
             
             let academiaData = null
             if (profileData.academia_id) {
+              console.log('🏫 Cargando academia...')
               const { data: academia } = await supabase
                 .from('academias')
                 .select('*')
                 .eq('id', profileData.academia_id)
                 .single()
               academiaData = academia
+              console.log('✅ Academia cargada:', academia?.nombre)
             }
 
             if (!mounted) return
@@ -103,25 +121,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setProfile(profileData)
             setAcademia(academiaData)
             
+            console.log('🎯 Configurando redirección...')
+            
             // Dar tiempo para que la página se cargue antes de redirigir
             timeoutId = setTimeout(() => {
               if (!mounted) return
               
               const currentPath = window?.location.pathname
+              console.log('📍 Ruta actual:', currentPath, 'Rol:', profileData.role)
               
               if (currentPath === '/login') {
+                console.log('🔄 Redirigiendo desde login...')
                 redirectToRolePage(profileData.role)
               } else if (currentPath !== '/' && !currentPath.startsWith(`/${profileData.role}`)) {
                 const rolePages = ['/admin', '/gestor', '/profesor', '/alumno']
                 const isRolePage = rolePages.some(page => currentPath.startsWith(page))
                 
                 if (isRolePage) {
+                  console.log('🔄 Redirigiendo a página correcta de rol...')
                   redirectToRolePage(profileData.role)
                 }
               }
             }, 100)
           } catch (profileError) {
-            console.error('Error loading profile:', profileError)
+            console.error('❌ Error loading profile:', profileError)
             if (mounted) {
               setUser(null)
               setProfile(null)
@@ -129,6 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
         } else {
+          console.log('🚫 Sin usuario, limpiando estado...')
           setUser(null)
           setProfile(null)
           setAcademia(null)
@@ -136,13 +160,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           timeoutId = setTimeout(() => {
             if (!mounted) return
             const currentPath = window?.location.pathname
+            console.log('📍 Sin usuario, ruta actual:', currentPath)
             if (currentPath !== '/login' && currentPath !== '/') {
+              console.log('🔄 Redirigiendo a login...')
               router.push('/login')
             }
           }, 100)
         }
       } catch (error) {
-        console.error('Error initializing auth:', error)
+        console.error('❌ Error initializing auth:', error)
         if (mounted) {
           setUser(null)
           setProfile(null)
@@ -150,6 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } finally {
         if (mounted) {
+          console.log('✅ AuthContext inicializado')
           setInitialized(true)
           setLoading(false)
         }

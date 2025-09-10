@@ -10,6 +10,8 @@ export default function Home() {
   const [loadingState, setLoadingState] = useState<string>('Iniciando...')
 
   useEffect(() => {
+    console.log('🏠 Home page - Estado:', { initialized, loading, hasUser: !!user, hasProfile: !!profile })
+    
     if (!initialized) {
       setLoadingState('Inicializando...')
       return
@@ -21,6 +23,7 @@ export default function Home() {
     }
 
     if (!user) {
+      console.log('🚫 Sin usuario, redirigiendo a login...')
       setLoadingState('Redirigiendo al login...')
       setTimeout(() => {
         router.replace('/login')
@@ -29,11 +32,13 @@ export default function Home() {
     }
 
     if (!profile) {
+      console.log('⏳ Usuario sin perfil, esperando...')
       setLoadingState('Cargando perfil...')
       return
     }
 
     if (profile) {
+      console.log('✅ Usuario y perfil listos, redirigiendo a:', profile.role)
       setLoadingState('Redirigiendo a tu panel...')
       
       setTimeout(() => {
@@ -46,6 +51,7 @@ export default function Home() {
         } else if (profile.role === 'alumno') {
           router.replace('/alumno')
         } else {
+          console.log('❌ Rol desconocido:', profile.role)
           router.replace('/login')
         }
       }, 500)
