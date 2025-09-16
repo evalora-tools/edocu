@@ -15,16 +15,16 @@ export const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   {
     auth: {
-      persistSession: false, // No persistir sesión al cerrar pestaña
+      persistSession: true, // Mantener sesión entre recargas y pestañas
       storage: {
         getItem: (key: string) => {
-          return sessionStorage.getItem(key)
+          return localStorage.getItem(key)
         },
         setItem: (key: string, value: string) => {
-          sessionStorage.setItem(key, value)
+          localStorage.setItem(key, value)
         },
         removeItem: (key: string) => {
-          sessionStorage.removeItem(key)
+          localStorage.removeItem(key)
         }
       }
     },
