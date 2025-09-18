@@ -16,14 +16,20 @@ export const supabase = createClient<Database>(
   {
     auth: {
       persistSession: true, // Mantener sesión entre recargas y pestañas
+      autoRefreshToken: true, // Refrescar token automáticamente
+      detectSessionInUrl: true, // Detectar sesión en URL (para OAuth)
       storage: {
         getItem: (key: string) => {
-          return localStorage.getItem(key)
+          const value = localStorage.getItem(key)
+          console.log('📖 Supabase storage getItem:', key, value ? 'tiene valor' : 'vacío')
+          return value
         },
         setItem: (key: string, value: string) => {
+          console.log('💾 Supabase storage setItem:', key, value ? 'guardando datos' : 'valor vacío')
           localStorage.setItem(key, value)
         },
         removeItem: (key: string) => {
+          console.log('🗑️ Supabase storage removeItem:', key)
           localStorage.removeItem(key)
         }
       }

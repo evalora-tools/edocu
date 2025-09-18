@@ -125,8 +125,8 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
       if (newWindow) {
         newWindow.opener = null
       }
-      setLoading(true)
-      window.location.reload()
+  setLoading(true)
+  router.push('/alumno/asignatura/' + params.id)
     }
   }
 
@@ -287,7 +287,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <button
-                onClick={() => window.location.href = '/alumno'}
+                onClick={() => router.push('/alumno')}
                 className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -602,16 +602,13 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
         </div>
       </div>
 
-      {/* Modal Reproductor con Tracking */}
+      {/* Modal Reproductor Simple */}
       {showPlayerModal && playerData && selectedContent && (
         <VdoCipherPlayer
           otp={playerData.otp}
           playbackInfo={playerData.playbackInfo}
-          contenidoId={selectedContent.id}
           titulo={selectedContent.titulo}
-          duracion={selectedContent.duracion ? parseInt(selectedContent.duracion) : undefined}
           onClose={closePlayerModal}
-          onSuspiciousActivity={handleSuspiciousActivity}
         />
       )}
     </div>

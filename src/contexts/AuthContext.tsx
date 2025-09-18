@@ -49,10 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true
-    let timeoutId: NodeJS.Timeout
     let subscription: any
-
-  // ...eliminado event listener para cerrar sesión automáticamente...
 
     const initializeAuth = async () => {
       try {
@@ -64,110 +61,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           return
         }
         
-        console.log('🌐 Ejecutándose en cliente, continuando...')
-        
-        // Pequeña pausa para asegurar hidratación completa
-        await new Promise(resolve => setTimeout(resolve, 50))
-        
-        console.log('📡 Obteniendo sesión de Supabase...')
-        const { data: { session }, error } = await supabase.auth.getSession()
-        
-        if (error) {
-          console.error('❌ Error getting session:', error)
-          if (mounted) {
-            setUser(null)
-            setProfile(null)
-            setAcademia(null)
-            setInitialized(true)
-            setLoading(false)
-          }
-          return
-        }
-        
-        console.log('✅ Sesión obtenida:', session?.user?.id ? 'Usuario logueado' : 'Sin usuario')
+        // Obtener sesión actual
+        const { data: { session } } = await supabase.auth.getSession()
         
         if (!mounted) return
         
         if (session?.user) {
-          console.log('👤 Usuario encontrado, cargando perfil...')
+          console.log('👤 Usuario encontrado:', session.user.email)
           setUser(session.user)
-          
-          try {
-            const { data: profileData, error: profileError } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single()
-
-            if (profileError) {
-              console.error('❌ Error cargando perfil:', profileError)
-              throw profileError
-            }
-            
-            console.log('✅ Perfil cargado:', profileData.role, profileData.academia_id)
-            
-            let academiaData = null
-            if (profileData.academia_id) {
-              console.log('🏫 Cargando academia...')
-              const { data: academia } = await supabase
-                .from('academias')
-                .select('*')
-                .eq('id', profileData.academia_id)
-                .single()
-              academiaData = academia
-              console.log('✅ Academia cargada:', academia?.nombre)
-            }
-
-            if (!mounted) return
-            
-            setProfile(profileData)
-            setAcademia(academiaData)
-            
-            console.log('🎯 Configurando redirección...')
-            
-            // Dar tiempo para que la página se cargue antes de redirigir
-            timeoutId = setTimeout(() => {
-              if (!mounted) return
-              
-              const currentPath = window?.location.pathname
-              console.log('📍 Ruta actual:', currentPath, 'Rol:', profileData.role)
-              
-              if (currentPath === '/login') {
-                console.log('🔄 Redirigiendo desde login...')
-                redirectToRolePage(profileData.role)
-              } else if (currentPath !== '/' && !currentPath.startsWith(`/${profileData.role}`)) {
-                const rolePages = ['/admin', '/gestor', '/profesor', '/alumno']
-                const isRolePage = rolePages.some(page => currentPath.startsWith(page))
-                
-                if (isRolePage) {
-                  console.log('🔄 Redirigiendo a página correcta de rol...')
-                  redirectToRolePage(profileData.role)
-                }
-              }
-            }, 100)
-          } catch (profileError) {
-            console.error('❌ Error loading profile:', profileError)
-            if (mounted) {
-              setUser(null)
-              setProfile(null)
-              setAcademia(null)
-            }
-          }
+          await loadUserProfile(session.user.id)
         } else {
-          console.log('🚫 Sin usuario, limpiando estado...')
+          console.log('� Sin usuario logueado')
           setUser(null)
           setProfile(null)
           setAcademia(null)
-          
-          timeoutId = setTimeout(() => {
-            if (!mounted) return
-            const currentPath = window?.location.pathname
-            console.log('📍 Sin usuario, ruta actual:', currentPath)
-            if (currentPath !== '/login' && currentPath !== '/') {
-              console.log('🔄 Redirigiendo a login...')
-              router.push('/login')
-            }
-          }, 100)
         }
       } catch (error) {
         console.error('❌ Error initializing auth:', error)
@@ -178,76 +85,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       } finally {
         if (mounted) {
-          console.log('✅ AuthContext inicializado')
           setInitialized(true)
           setLoading(false)
         }
       }
     }
 
-    const redirectToRolePage = (role: string) => {
-      if (role === 'admin') {
-        router.push('/admin')
-      } else if (role === 'gestor') {
-        router.push('/gestor')
-      } else if (role === 'profesor') {
-        router.push('/profesor')
-      } else if (role === 'alumno') {
-        router.push('/alumno')
-      } else {
-        router.push('/')
+    const loadUserProfile = async (userId: string) => {
+      try {
+        console.log('🔍 Cargando perfil para usuario:', userId)
+        
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', userId)
+          .single()
+
+        if (profileError || !profileData) {
+          console.error('❌ Error cargando perfil:', profileError)
+          return
+        }
+
+        console.log('✅ Perfil cargado:', profileData.role)
+        setProfile(profileData)
+
+        // Cargar academia si existe
+        if (profileData.academia_id) {
+          const { data: academiaData } = await supabase
+            .from('academias')
+            .select('*')
+            .eq('id', profileData.academia_id)
+            .single()
+          
+          if (academiaData) {
+            console.log('✅ Academia cargada:', academiaData.nombre)
+            setAcademia(academiaData)
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error loading profile:', error)
       }
     }
 
     initializeAuth()
 
-    // Configurar listener de cambios de auth
+    // Listener simplificado para cambios de auth
     const authSubscription = supabase.auth.onAuthStateChange(async (event, session) => {
       if (!mounted) return
 
-      console.log('Auth state change:', event, session?.user?.id)
+      console.log('🔄 Auth state change:', event)
 
       if (session?.user) {
         setUser(session.user)
-        
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-
-        if (profileError) {
-          console.error('Error fetching profile:', profileError)
-          setProfile(null)
-          setAcademia(null)
-          return
-        }
-
-        let academiaData = null
-        if (profileData.academia_id) {
-          const { data: academia } = await supabase
-            .from('academias')
-            .select('*')
-            .eq('id', profileData.academia_id)
-            .single()
-          academiaData = academia
-        }
-
-        setProfile(profileData)
-        setAcademia(academiaData)
-
-        const currentPath = window?.location.pathname
-        if (event === 'SIGNED_IN' || currentPath === '/login') {
-          redirectToRolePage(profileData.role)
-        }
+        await loadUserProfile(session.user.id)
       } else {
         setUser(null)
         setProfile(null)
         setAcademia(null)
-        const currentPath = window?.location.pathname
-        if (currentPath !== '/login' && currentPath !== '/') {
-          router.push('/login')
-        }
       }
     })
 
@@ -255,34 +149,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       mounted = false
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-      }
       if (subscription) {
         subscription.unsubscribe()
       }
-  // ...ya no es necesario limpiar event listener...
     }
-  }, [router])
+  }, [])
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { data: { session } } = await supabase.auth.getSession()
-      if (session) {
-        await supabase.auth.signOut()
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
+      console.log('🔐 SignIn llamado desde AuthContext para:', email)
       
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
       
       if (error) {
+        console.error('❌ Error en signIn:', error)
         handleSupabaseError(error)
       }
+      
+      console.log('✅ SignIn exitoso desde AuthContext')
+      
     } catch (error: any) {
-      console.error('Error en signIn:', error)
+      console.error('❌ Error en signIn:', error)
       throw error
     }
   }

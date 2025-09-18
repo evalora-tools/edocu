@@ -157,18 +157,6 @@ SELECT * FROM detect_suspicious_sessions(
 SELECT * FROM calculate_effective_watch_time('session-uuid');
 ```
 
-## Configuración de Seguridad
-
-### Umbrales de Detección
-- **Sesiones simultáneas**: Máximo 1 por contenido
-- **IPs diferentes**: Máximo 3 en 24 horas
-- **Dispositivos diferentes**: Máximo 2 en 24 horas
-- **Eficiencia mínima**: 60% (tiempo efectivo/tiempo total)
-
-### Políticas de Bloqueo
-- **Bloqueo temporal**: 30 minutos por primera infracción
-- **Bloqueo escalado**: Incrementa con infracciones repetidas
-- **Notificación a profesores**: Alertas automáticas por actividad sospechosa
 
 ## Instalación y Configuración
 

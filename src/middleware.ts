@@ -3,93 +3,59 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Rutas públicas que no requieren autenticación
-const publicRoutes = ['/login', '/api/auth', '/_next', '/static', '/favicon.ico', '/']
+const publicRoutes = [
+  '/login', 
+  '/api/auth', 
+  '/api/video', // Permitir acceso a APIs de video (pero pueden requerir auth internamente)
+  '/_next', 
+  '/static', 
+  '/favicon.ico', 
+  '/',
+  '/asignatura' // Permitir acceso a páginas de asignaturas/contenidos (pero el tracking requerirá auth)
+]
 
 export async function middleware(request: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req: request, res })
   const { pathname } = request.nextUrl
 
+  console.log('🔍 Middleware ejecutándose para:', pathname)
+
   // Verificar si es una ruta pública
   if (publicRoutes.some(route => pathname.startsWith(route))) {
+    console.log('✅ Ruta pública, permitiendo acceso:', pathname)
     return res
   }
 
   try {
-    // Verificar sesión
-    const { data: { session } } = await supabase.auth.getSession()
+    // Solo verificar sesión - dejar que AuthContext maneje el resto
+    const { data: { session }, error } = await supabase.auth.getSession()
+
+    if (error) {
+      console.log('❌ Error en middleware getSession:', error.message)
+    }
 
     // Si no hay sesión, redirigir a login
-    if (!session?.user) {
+    if (error || !session?.user) {
+      console.log('🚫 Middleware: Sin sesión válida, redirigiendo a login desde:', pathname)
       return NextResponse.redirect(new URL('/login', request.url))
     }
 
-    // Obtener el perfil del usuario
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', session.user.id)
-      .single()
-
-    if (profileError || !profile) {
-      console.error('Error al obtener el perfil:', profileError)
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-
-    // Verificar acceso basado en rol y redirigir apropiadamente
-    if (pathname.startsWith('/admin') && profile.role !== 'admin') {
-      // Redirigir a la página apropiada para el rol del usuario
-      if (profile.role === 'gestor') {
-        return NextResponse.redirect(new URL('/gestor', request.url))
-      } else if (profile.role === 'profesor') {
-        return NextResponse.redirect(new URL('/profesor', request.url))
-      } else if (profile.role === 'alumno') {
-        return NextResponse.redirect(new URL('/alumno', request.url))
-      } else {
-        return NextResponse.redirect(new URL('/', request.url))
-      }
-    }
-
-    if (pathname.startsWith('/gestor') && profile.role !== 'gestor') {
-      if (profile.role === 'admin') {
-        return NextResponse.redirect(new URL('/admin', request.url))
-      } else if (profile.role === 'profesor') {
-        return NextResponse.redirect(new URL('/profesor', request.url))
-      } else if (profile.role === 'alumno') {
-        return NextResponse.redirect(new URL('/alumno', request.url))
-      } else {
-        return NextResponse.redirect(new URL('/', request.url))
-      }
-    }
-
-    if (pathname.startsWith('/profesor') && profile.role !== 'profesor') {
-      if (profile.role === 'admin') {
-        return NextResponse.redirect(new URL('/admin', request.url))
-      } else if (profile.role === 'gestor') {
-        return NextResponse.redirect(new URL('/gestor', request.url))
-      } else if (profile.role === 'alumno') {
-        return NextResponse.redirect(new URL('/alumno', request.url))
-      } else {
-        return NextResponse.redirect(new URL('/', request.url))
-      }
-    }
-
-    if (pathname.startsWith('/alumno') && profile.role !== 'alumno') {
-      if (profile.role === 'admin') {
-        return NextResponse.redirect(new URL('/admin', request.url))
-      } else if (profile.role === 'gestor') {
-        return NextResponse.redirect(new URL('/gestor', request.url))
-      } else if (profile.role === 'profesor') {
-        return NextResponse.redirect(new URL('/profesor', request.url))
-      } else {
-        return NextResponse.redirect(new URL('/', request.url))
-      }
+    console.log('✅ Middleware: Sesión válida para usuario:', session.user.email, 'accediendo a:', pathname)
+    
+    // Solo verificar acceso básico a rutas protegidas
+    // El AuthContext se encargará de las redirecciones específicas por rol
+    const protectedPaths = ['/admin', '/gestor', '/profesor', '/alumno']
+    const isProtectedPath = protectedPaths.some(path => pathname.startsWith(path))
+    
+    if (isProtectedPath) {
+      console.log('🔐 Middleware: Accediendo a ruta protegida:', pathname)
     }
 
     return res
 
   } catch (error) {
-    console.error('Error en middleware:', error)
+    console.error('❌ Error en middleware:', error)
     return NextResponse.redirect(new URL('/login', request.url))
   }
 }

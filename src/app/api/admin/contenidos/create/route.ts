@@ -21,6 +21,7 @@ export async function POST(req: NextRequest) {
       fecha = null,
       duracion = null,
       orden = 0,
+      seccion_id = null,
     } = body || {};
 
     if (!titulo || !tipo || !curso_id || !archivo_url) {
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
           fecha,
           duracion,
           orden,
+          seccion_id,
         },
       ])
       .select()
