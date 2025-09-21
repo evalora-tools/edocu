@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
 
 export default function GestorPage() {
   const router = useRouter()
-  const { profile, academia, signOut } = useAuth()
+  const [profile, setProfile] = useState<any>(null)
+  const [academia, setAcademia] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [stats, setStats] = useState({
     profesores: 0,
@@ -24,18 +24,29 @@ export default function GestorPage() {
           return
         }
 
-        const { data: profile } = await supabase
+        const { data: profileData } = await supabase
           .from('profiles')
-          .select('role, academia_id')
+          .select('*')
           .eq('id', session.user.id)
           .single()
 
-        if (!profile || profile.role !== 'gestor') {
+        if (!profileData || profileData.role !== 'gestor') {
           router.replace('/')
           return
         }
 
-        await loadStats(profile.academia_id)
+        setProfile(profileData)
+
+        if (profileData.academia_id) {
+          const { data: academiaData } = await supabase
+            .from('academias')
+            .select('*')
+            .eq('id', profileData.academia_id)
+            .single()
+          setAcademia(academiaData)
+        }
+
+        await loadStats(profileData.academia_id)
       } catch (err) {
         console.error('Error inicializando:', err)
       } finally {
@@ -76,6 +87,12 @@ export default function GestorPage() {
     } catch (err) {
       console.error('Error cargando estadísticas:', err)
     }
+  }
+
+
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    router.push('/login')
   }
 
   if (loading) {

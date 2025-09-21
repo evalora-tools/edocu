@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
+
 
 interface Curso {
   id: string
@@ -14,48 +14,82 @@ interface Curso {
 
 export default function AlumnoPage() {
   const router = useRouter()
-  const { user, profile, academia, loading: authLoading, initialized, signOut } = useAuth()
+  const [user, setUser] = useState<any>(null)
+  const [profile, setProfile] = useState<any>(null)
+  const [academia, setAcademia] = useState<any>(null)
   const [cursosLoading, setCursosLoading] = useState(true)
   const [cursos, setCursos] = useState<Curso[]>([])
+  const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
 
   // Manejar hidratación del cliente
+
   useEffect(() => {
     setMounted(true)
   }, [])
 
   useEffect(() => {
-    // Solo ejecutar si el componente está montado y el auth está inicializado
-    if (!mounted || !initialized || authLoading) {
-      return
-    }
+    const init = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!session) {
+          router.replace('/login')
+          return
+        }
 
-    // Si no hay usuario o no es alumno, no cargar cursos
+        setUser(session.user)
+
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+
+        if (!profileData || profileData.role !== 'alumno') {
+          router.replace('/')
+          return
+        }
+
+        setProfile(profileData)
+
+        if (profileData.academia_id) {
+          const { data: academiaData } = await supabase
+            .from('academias')
+            .select('*')
+            .eq('id', profileData.academia_id)
+            .single()
+          setAcademia(academiaData)
+        }
+      } catch (err) {
+        console.error('Error inicializando:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (mounted) init()
+  }, [mounted, router])
+
+  useEffect(() => {
+    if (!mounted || loading) return;
     if (!user || !profile || profile.role !== 'alumno') {
       setCursosLoading(false)
       return
     }
-
     const loadCursos = async () => {
       try {
-        // Pequeña pausa adicional para asegurar que todo esté listo
         await new Promise(resolve => setTimeout(resolve, 100))
-        
         const cursosIds: string[] = profile.cursos_adquiridos || []
-
         if (cursosIds.length === 0) {
           setCursos([])
           setCursosLoading(false)
           return
         }
-
         const { data: cursosData, error } = await supabase
           .from('cursos')
           .select('id, nombre, universidad, curso_academico')
           .in('id', cursosIds)
           .eq('academia_id', profile.academia_id)
           .order('created_at', { ascending: false })
-
         if (error) {
           console.error('Error cargando cursos del alumno:', error)
           setCursos([])
@@ -68,49 +102,22 @@ export default function AlumnoPage() {
         setCursosLoading(false)
       }
     }
-
     loadCursos()
-  }, [user, profile, authLoading, initialized, mounted, router])
+  }, [user, profile, loading, mounted])
 
   // Estados de carga secuenciales para evitar flashing
-  if (!mounted) {
+
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Iniciando...</div>
+        <div className="text-lg">Cargando...</div>
       </div>
     )
   }
 
-  if (!initialized) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Verificando sesión...</div>
-      </div>
-    )
-  }
-
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Cargando perfil...</div>
-      </div>
-    )
-  }
 
   if (!user || !profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Redirigiendo...</div>
-      </div>
-    )
-  }
-
-  if (profile.role !== 'alumno') {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg text-red-600">Acceso denegado</div>
-      </div>
-    )
+    return null;
   }
 
   if (cursosLoading) {
@@ -145,7 +152,8 @@ export default function AlumnoPage() {
               </span>
               <button
                 onClick={async () => {
-                  await signOut()
+                  await supabase.auth.signOut();
+                  router.push('/login');
                 }}
                 className="text-sm text-gray-500 hover:text-gray-700"
               >
