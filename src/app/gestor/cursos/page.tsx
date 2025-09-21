@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/contexts/AuthContext'
+// import { useAuth } from '@/contexts/AuthContext'
 import Toast from '@/components/ui/Toast'
 
 interface Profesor {
@@ -23,7 +23,8 @@ interface Curso {
 
 export default function GestorCursosPage() {
   const router = useRouter()
-  const { profile, academia } = useAuth()
+  const [profile, setProfile] = useState<any>(null)
+  const [academia, setAcademia] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [cursos, setCursos] = useState<Curso[]>([])
   const [profesores, setProfesores] = useState<Profesor[]>([])
@@ -54,20 +55,31 @@ export default function GestorCursosPage() {
           return
         }
 
-        const { data: profile } = await supabase
+        const { data: profileData } = await supabase
           .from('profiles')
           .select('role, academia_id')
           .eq('id', session.user.id)
           .single()
 
-        if (!profile || profile.role !== 'gestor') {
+        if (!profileData || profileData.role !== 'gestor') {
           router.replace('/')
           return
         }
 
+        setProfile(profileData)
+
+        if (profileData.academia_id) {
+          const { data: academiaData } = await supabase
+            .from('academias')
+            .select('*')
+            .eq('id', profileData.academia_id)
+            .single()
+          setAcademia(academiaData)
+        }
+
         await Promise.all([
-          loadCursos(profile.academia_id),
-          loadProfesores(profile.academia_id)
+          loadCursos(profileData.academia_id),
+          loadProfesores(profileData.academia_id)
         ])
       } catch (err) {
         console.error('Error inicializando:', err)
