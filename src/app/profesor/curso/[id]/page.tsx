@@ -468,6 +468,7 @@ export default function ProfesorCursoPage() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'same-origin',
           body: JSON.stringify({ title: uploadForm.titulo })
         });
         
@@ -485,6 +486,7 @@ export default function ProfesorCursoPage() {
         const createContenidoRes = await fetch('/api/admin/contenidos/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
           body: JSON.stringify({
             titulo: uploadForm.titulo,
             descripcion: uploadForm.descripcion || null,
@@ -538,6 +540,7 @@ export default function ProfesorCursoPage() {
               await fetch('/api/admin/contenidos/update-by-video', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
+                credentials: 'same-origin',
                 body: JSON.stringify({ 
                   archivo_url: videoId, 
                   estado_procesamiento: 'ready', 
@@ -552,6 +555,7 @@ export default function ProfesorCursoPage() {
           await fetch('/api/admin/contenidos/update-by-video', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
             body: JSON.stringify({ archivo_url: videoId, estado_procesamiento: 'failed' })
           });
           throw new Error(`Upload failed: ${uploadRes.status}`);

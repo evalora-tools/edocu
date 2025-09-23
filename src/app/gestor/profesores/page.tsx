@@ -139,6 +139,7 @@ export default function GestorProfesoresPage() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'same-origin',
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,

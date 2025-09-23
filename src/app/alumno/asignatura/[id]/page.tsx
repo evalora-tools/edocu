@@ -95,7 +95,10 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
   const abrirReproductor = async (videoId: string, contenido: Contenido) => {
     try {
       setIsOpening(true)
-      const res = await fetch(`/api/admin/clases/otp/${videoId}`, { cache: 'no-store' })
+      const res = await fetch(`/api/admin/clases/otp/${videoId}`, { 
+        cache: 'no-store',
+        credentials: 'same-origin'
+      })
       if (!res.ok) throw new Error('Error obteniendo OTP')
       const data = await res.json()
       setPlayerData({ otp: data.otp, playbackInfo: data.playbackInfo })

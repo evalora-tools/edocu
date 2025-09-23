@@ -33,7 +33,7 @@ export const supabaseServer = createClient<Database>(
   }
 )
 
-// Cliente para el navegador (usa localStorage)
+// Cliente para el navegador (usa cookies para compatibilidad con middleware)
 export const supabase = (typeof window !== 'undefined')
   ? createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -45,17 +45,31 @@ export const supabase = (typeof window !== 'undefined')
           detectSessionInUrl: true,
           storage: {
             getItem: (key: string) => {
-              const value = window.localStorage.getItem(key)
-              console.log('📖 Supabase storage getItem:', key, value ? 'tiene valor' : 'vacío')
-              return value
+              // Intentar obtener de cookies primero, luego localStorage
+              if (typeof document !== 'undefined') {
+                const cookieValue = document.cookie
+                  .split('; ')
+                  .find(row => row.startsWith(`${key}=`))
+                  ?.split('=')[1];
+                if (cookieValue) {
+                  return decodeURIComponent(cookieValue);
+                }
+              }
+              return window.localStorage.getItem(key);
             },
             setItem: (key: string, value: string) => {
-              console.log('💾 Supabase storage setItem:', key, value ? 'guardando datos' : 'valor vacío')
-              window.localStorage.setItem(key, value)
+              // Guardar en cookies para compatibilidad con middleware
+              if (typeof document !== 'undefined') {
+                document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=604800; SameSite=Lax`;
+              }
+              window.localStorage.setItem(key, value);
             },
             removeItem: (key: string) => {
-              console.log('🗑️ Supabase storage removeItem:', key)
-              window.localStorage.removeItem(key)
+              // Remover de cookies y localStorage
+              if (typeof document !== 'undefined') {
+                document.cookie = `${key}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+              }
+              window.localStorage.removeItem(key);
             }
           }
         },

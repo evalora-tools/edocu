@@ -155,6 +155,7 @@ export default function GestorAlumnosPage() {
           headers: {
             'Content-Type': 'application/json',
           },
+          credentials: 'same-origin',
           body: JSON.stringify({
             email: formData.email,
             password: formData.password,
