@@ -639,7 +639,7 @@ export default function ProfesorCursoPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-sky-25 via-blue-50 to-cyan-25 flex flex-col">
       {toast && (
         <Toast
           message={toast.message}
@@ -648,28 +648,40 @@ export default function ProfesorCursoPage() {
         />
       )}
       {/* Navigation Header - Fixed */}
-      <div className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
+      <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30 fixed top-0 left-0 right-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <button
                 onClick={() => router.push('/profesor')}
-                className="mr-4 text-gray-400 hover:text-gray-600"
+                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center mr-3">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
+                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
+                  </svg>
+                </div>
+              </div>
+              <div className="ml-4">
+                <h1 className="text-xl font-medium text-gray-900">{academia?.nombre || 'Academia'}</h1>
+              </div>
+            </div>
+            <div className="flex items-center">
+              <div className="mr-4">
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
                   <span className="text-white font-medium text-sm">
                     {curso.nombre.charAt(0).toUpperCase()}
                   </span>
                 </div>
-                <div>
-                  <h1 className="text-lg font-medium text-gray-900">{curso.nombre}</h1>
-                  <p className="text-sm text-gray-500">{curso.universidad}</p>
-                </div>
+              </div>
+              <div>
+                <h2 className="text-lg font-medium text-gray-900">{curso.nombre}</h2>
+                <p className="text-sm text-gray-500">{curso.universidad}</p>
               </div>
             </div>
           </div>
@@ -678,15 +690,14 @@ export default function ProfesorCursoPage() {
 
       <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
         {/* Sidebar - Fixed */}
-        <div className="w-64 fixed left-0 top-16 bottom-0 bg-white border-r border-gray-200 overflow-y-auto">
+        <div className="w-64 fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto">
           <nav className="mt-5 px-2">
             <div className="space-y-1">
-
               <div 
                 onClick={() => router.push('/profesor')}
-                className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer"
+                className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
               >
-                <span className="w-6 h-6 bg-gray-400 rounded text-white text-xs flex items-center justify-center mr-3">
+                <span className="w-6 h-6 bg-blue-400 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
@@ -696,9 +707,9 @@ export default function ProfesorCursoPage() {
 
               <div
                 onClick={() => router.push('/profesor/alumnos')}
-                className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer"
+                className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
               >
-                <span className="w-6 h-6 bg-green-600 rounded text-white text-xs flex items-center justify-center mr-3">
+                <span className="w-6 h-6 bg-blue-200 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 6.292 4 4 0 000-6.292zM15 21H3v-1a6 6 0 0112 0v1z" />
                   </svg>
@@ -707,7 +718,7 @@ export default function ProfesorCursoPage() {
               </div>
 
               <div className="mt-8">
-                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <h3 className="px-3 text-xs font-semibold text-blue-700 uppercase tracking-wider my-3">
                   Mis Cursos
                 </h3>
                 <div className="mt-2 space-y-1">
@@ -715,14 +726,14 @@ export default function ProfesorCursoPage() {
                     <div 
                       key={cursoItem.id} 
                       onClick={() => router.push(`/profesor/curso/${cursoItem.id}`)}
-                      className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
-                        cursoItem.id === cursoId 
+                      className={`group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150
+                        ${cursoItem.id === cursoId 
                           ? 'bg-blue-50 text-blue-700' 
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
+                          : 'bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm'}
+                      `}
                     >
-                      <span className={`w-6 h-6 rounded text-white text-xs flex items-center justify-center mr-3 ${
-                        cursoItem.id === cursoId ? 'bg-blue-600' : 'bg-blue-600'
+                      <span className={`w-6 h-6 rounded text-blue-900 text-xs flex items-center justify-center mr-3 ${
+                        cursoItem.id === cursoId ? 'bg-blue-200' : 'bg-blue-200'
                       }`}>
                         {cursoItem.nombre.charAt(0).toUpperCase()}
                       </span>

@@ -19,10 +19,18 @@ interface Academia {
   nombre: string
 }
 
+interface Curso {
+  id: string
+  nombre: string
+  universidad: string
+  curso_academico: string
+}
+
 export default function ProfesorAlumnosPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(true)
   const [alumnos, setAlumnos] = useState<Alumno[]>([])
+  const [cursos, setCursos] = useState<Curso[]>([])
   const [busquedaTexto, setBusquedaTexto] = useState<string>('')
   const [academia, setAcademia] = useState<Academia | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
@@ -121,7 +129,7 @@ export default function ProfesorAlumnosPage() {
       // Obtener los cursos con sus nombres
       const { data: cursosData, error: cursosError } = await supabase
         .from('cursos')
-        .select('id, nombre')
+        .select('id, nombre, universidad, curso_academico')
         .in('id', cursosAsignados)
         .eq('academia_id', academiaId)
 
@@ -129,6 +137,8 @@ export default function ProfesorAlumnosPage() {
         console.error('Error cargando cursos:', cursosError)
         return
       }
+
+      setCursos(cursosData || [])
 
       // Crear un mapa de curso ID a nombre
       const cursosMap = cursosData?.reduce((acc, curso) => {
@@ -203,7 +213,7 @@ export default function ProfesorAlumnosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-cyan-25">
       {toast && (
         <Toast
           message={toast.message}
@@ -212,11 +222,19 @@ export default function ProfesorAlumnosPage() {
         />
       )}
 
-      {/* Navigation Header */}
-      <div className="bg-white border-b border-gray-200">
+      {/* Navigation Header - Fixed */}
+      <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30 fixed top-0 left-0 right-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
+              <button
+                onClick={() => router.push('/profesor')}
+                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
                   <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -228,143 +246,173 @@ export default function ProfesorAlumnosPage() {
                 <h1 className="text-xl font-medium text-gray-900">{academia?.nombre || 'Academia'}</h1>
               </div>
             </div>
-            <button
-              onClick={() => router.push('/profesor')}
-              className="text-gray-500 hover:text-gray-700"
-            >
-              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-            </button>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-blue-900 font-medium">
+                Mis Alumnos
+              </span>
+              <button
+                onClick={async () => {
+                  await supabase.auth.signOut();
+                  router.push('/login');
+                }}
+                className="text-sm text-blue-700 hover:text-blue-900 font-semibold"
+              >
+                Cerrar sesión
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="max-w-4xl mx-auto py-8 px-4">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Mis Alumnos</h2>
-        
-        {/* Search Bar */}
-        <div className="mb-6">
-          <div className="relative w-full sm:w-80">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <input
-              type="text"
-              placeholder="Buscar por nombre o email"
-              value={busquedaTexto}
-              onChange={(e) => setBusquedaTexto(e.target.value)}
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
-            />
-          </div>
-        </div>
+      <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
+        {/* Sidebar - Fixed */}
+        <div className="w-64 fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto">
+          <nav className="mt-5 px-2">
+            <div className="space-y-1">
+              <div 
+                onClick={() => router.push('/profesor')}
+                className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
+              >
+                <span className="w-6 h-6 bg-blue-400 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                  </svg>
+                </span>
+                Inicio
+              </div>
 
-        {/* Stats Card */}
-        <div className="mb-6">
-          <div className="bg-white overflow-hidden shadow rounded-lg">
-            <div className="p-5">
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <svg className="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="bg-gradient-to-r from-blue-100 to-blue-50 text-blue-900 group flex items-center px-2 py-2 text-sm font-semibold rounded-lg shadow-sm">
+                <span className="w-6 h-6 bg-blue-400 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 6.292 4 4 0 000-6.292zM15 21H3v-1a6 6 0 0112 0v1z" />
                   </svg>
-                </div>
-                <div className="ml-5 w-0 flex-1">
-                  <dl>
-                    <dt className="text-sm font-medium text-gray-500 truncate">
-                      Matrículas activas
-                    </dt>
-                    <dd className="text-lg font-medium text-gray-900">
-                      {alumnos.length}
-                    </dd>
-                  </dl>
+                </span>
+                Mis alumnos
+              </div>
+
+              <div className="mt-8">
+                <h3 className="px-3 text-xs font-semibold text-blue-700 uppercase tracking-wider my-3">
+                  Mis Cursos
+                </h3>
+                <div className="mt-2 space-y-1">
+                  {cursos.map((curso) => (
+                    <div 
+                      key={curso.id} 
+                      onClick={() => router.push(`/profesor/curso/${curso.id}`)}
+                      className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
+                    >
+                      <span className="w-6 h-6 bg-blue-200 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
+                        {curso.nombre.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="truncate">{curso.nombre}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
-          </div>
+          </nav>
         </div>
 
-        {/* Students List */}
-        {alumnosFiltrados.length === 0 ? (
-          <div className="text-center py-12">
-            <div className="mx-auto h-24 w-24 text-gray-400">
-              <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 4.354a4 4 0 110 6.292 4 4 0 000-6.292zM15 21H3v-1a6 6 0 0112 0v1z" />
-              </svg>
+        {/* Main Content - Scrollable Area */}
+        <div className="flex-1 ml-64 overflow-y-auto h-[calc(100vh-4rem)]">
+          <div className="max-w-6xl mx-auto p-8">
+            {/* Header Section */}
+            <div className="mb-8">
+              {/* Removed header content */}
             </div>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">
-              {busquedaTexto ? 'No se encontraron alumnos' : 'No hay alumnos'}
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {busquedaTexto 
-                ? 'Intenta ajustar el filtro de búsqueda' 
-                : 'Aún no tienes alumnos asignados a tus asignaturas'}
-            </p>
-            {busquedaTexto && (
-              <div className="mt-4">
-                <button
-                  onClick={() => setBusquedaTexto('')}
-                  className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Limpiar filtro
-                </button>
+            
+            {/* Search Section */}
+            <div className="mb-6">
+              <div className="relative max-w-sm">
+                <input
+                  type="text"
+                  placeholder="Buscar..."
+                  value={busquedaTexto}
+                  onChange={(e) => setBusquedaTexto(e.target.value)}
+                  className="block w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Students List */}
+            {alumnosFiltrados.length === 0 ? (
+              <div className="bg-gray-50 rounded-lg p-12 text-center">
+                <p className="text-gray-500 mb-4">
+                  {busquedaTexto ? 'No se encontraron resultados' : 'No hay estudiantes'}
+                </p>
+                {busquedaTexto && (
+                  <button
+                    onClick={() => setBusquedaTexto('')}
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    Limpiar búsqueda
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                {/* Table Header */}
+                <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                  <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="col-span-4">Estudiante</div>
+                    <div className="col-span-4">Curso</div>
+                    <div className="col-span-3">Fecha matriculación</div>
+                    <div className="col-span-1"></div>
+                  </div>
+                </div>
+                
+                {/* Table Body */}
+                <div className="divide-y divide-gray-100">
+                  {alumnosFiltrados.map((alumno, index) => (
+                    <div
+                      key={`${alumno.id}-${alumno.curso_id}-${index}`}
+                      className="px-6 py-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="grid grid-cols-12 gap-4 items-center">
+                        <div className="col-span-4">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">
+                              {alumno.nombre ? resaltarTexto(alumno.nombre, busquedaTexto) : 'Sin nombre'}
+                            </p>
+                            <p className="text-sm text-gray-500">
+                              {resaltarTexto(alumno.email, busquedaTexto)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="col-span-4">
+                          <p className="text-sm text-gray-900">{alumno.curso_nombre}</p>
+                        </div>
+                        <div className="col-span-3">
+                          <p className="text-sm text-gray-500">
+                            {new Date(alumno.created_at).toLocaleDateString('es-ES')}
+                          </p>
+                        </div>
+                        <div className="col-span-1 text-right">
+                          <button
+                            onClick={() => window.open(`mailto:${alumno.email}?subject=Consulta sobre ${alumno.curso_nombre}`, '_blank')}
+                            className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+                            title="Enviar email"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Footer with count */}
+                <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                  <p className="text-xs text-gray-500">
+                    Mostrando {alumnosFiltrados.length} de {alumnos.length} estudiantes
+                  </p>
+                </div>
               </div>
             )}
           </div>
-        ) : (
-          <div className="bg-white shadow-sm rounded-lg overflow-hidden">
-            <div className="px-4 py-5 sm:p-6">
-              <div className="grid grid-cols-1 gap-4">
-                {alumnosFiltrados.map((alumno, index) => (
-                  <div
-                    key={`${alumno.id}-${alumno.curso_id}-${index}`}
-                    className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors duration-150"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-4">
-                        <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                          <span className="text-white font-medium text-sm">
-                            {(alumno.nombre || alumno.email).charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-medium text-gray-900">
-                            {alumno.nombre ? resaltarTexto(alumno.nombre, busquedaTexto) : 'Sin nombre'}
-                          </h3>
-                          <p className="text-sm text-gray-500">
-                            {resaltarTexto(alumno.email, busquedaTexto)}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">
-                          {alumno.curso_nombre}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Matriculado: {new Date(alumno.created_at).toLocaleDateString('es-ES')}
-                        </p>
-                      </div>
-                      <div className="flex items-center">
-                        <button
-                          onClick={() => window.open(`mailto:${alumno.email}?subject=Consulta sobre ${alumno.curso_nombre}`, '_blank')}
-                          className="text-blue-600 hover:text-blue-800 p-2 rounded-full hover:bg-blue-50 transition-colors"
-                          title="Enviar email"
-                        >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   )
