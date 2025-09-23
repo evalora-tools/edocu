@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { supabase } from '@/lib/supabase';
 import Image from 'next/image';
-import { FiLogIn } from 'react-icons/fi';
+import { FiLogIn, FiMail, FiLock } from 'react-icons/fi';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -27,7 +27,6 @@ export default function Login() {
     
     try {
       console.log('🔐 Intentando login para:', email);
-      
       // Hacer login directamente con Supabase
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -82,84 +81,99 @@ export default function Login() {
 
     } catch (err: any) {
       console.error('❌ Error inesperado:', err);
-      setError('Error inesperado. Intenta nuevamente.');
+      if (err instanceof TypeError && err.message && err.message.includes('Failed to fetch')) {
+        setError('Tu red está bloqueando el servicio, prueba con otra red.');
+      } else {
+        setError('Error inesperado. Intenta nuevamente.');
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-blue-200 via-white to-blue-100 p-2 relative">
-      <section className="w-full max-w-sm bg-white/95 border border-gray-100 rounded-2xl shadow-2xl px-8 py-12 flex flex-col gap-7 animate-fade-in-up transition-all duration-300">
-        <div className="flex flex-col items-center gap-2 mb-2">
-          <Image src="/images/favicon.ico" alt="Logo" width={60} height={60} className="rounded-full shadow-md mb-1" />
-          <h1 className="text-3xl font-extrabold text-blue-800 tracking-tight drop-shadow-sm">Iniciar Sesión</h1>
+    <main className="min-h-screen flex flex-col justify-between items-center bg-gradient-to-br from-blue-300 to-blue-100">
+      <div className="flex-1 flex items-center justify-center w-full">
+        {/* Tarjeta principal */}
+        <section className="w-full max-w-md bg-white/30 backdrop-blur-xl border border-white/40 rounded-3xl shadow-2xl px-10 py-12 flex flex-col gap-8 animate-fade-in-up transition-all duration-300">
+        <div className="flex flex-col items-center gap-3 mb-2">
+          <div className="bg-white/80 rounded-full p-2 shadow-lg">
+            <Image src="/images/favicon.ico" alt="Logo" width={64} height={64} className="rounded-full" />
+          </div>
+          <h1 className="text-4xl font-extrabold text-blue-900 tracking-tight drop-shadow-md">Bienvenido</h1>
+          <span className="text-base text-blue-700 font-medium tracking-tight">Accede a tu cuenta</span>
         </div>
-        <h2 className="text-xl font-semibold text-center text-blue-700 mb-2 tracking-tight">Bienvenido de nuevo</h2>
-        
-        <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+
+        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
           <div className="flex flex-col gap-1">
-            <label htmlFor="email" className="text-xs font-semibold text-gray-600">Correo electrónico</label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (error) setError('');
-              }}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-base focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none transition placeholder-gray-400 bg-white shadow-sm"
-              placeholder="tu@email.com"
-              disabled={isLoading}
-            />
+            <label htmlFor="email" className="text-xs font-semibold text-blue-900/80 ml-1">Correo electrónico</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400"><FiMail /></span>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (error) setError('');
+                }}
+                className="pl-10 pr-3 py-2 rounded-xl border border-blue-200 bg-white/80 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition placeholder-blue-300 shadow-sm w-full"
+                placeholder="tu@email.com"
+                disabled={isLoading}
+              />
+            </div>
           </div>
-          
+
           <div className="flex flex-col gap-1">
-            <label htmlFor="password" className="text-xs font-semibold text-gray-600">Contraseña</label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              required
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (error) setError('');
-              }}
-              className="rounded-lg border border-gray-300 px-3 py-2 text-base focus:ring-2 focus:ring-blue-200 focus:border-blue-400 outline-none transition placeholder-gray-400 bg-white shadow-sm"
-              placeholder="••••••••"
-              disabled={isLoading}
-            />
+            <label htmlFor="password" className="text-xs font-semibold text-blue-900/80 ml-1">Contraseña</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-blue-400"><FiLock /></span>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError('');
+                }}
+                className="pl-10 pr-3 py-2 rounded-xl border border-blue-200 bg-white/80 text-base focus:ring-2 focus:ring-blue-300 focus:border-blue-400 outline-none transition placeholder-blue-300 shadow-sm w-full"
+                placeholder="••••••••"
+                disabled={isLoading}
+              />
+            </div>
           </div>
-          
+
           {error && (
-            <div className="bg-red-100 border border-red-300 text-red-700 rounded-md px-3 py-2 text-sm text-center animate-fade-in">
+            <div className="bg-red-100/80 border border-red-300 text-red-700 rounded-md px-3 py-2 text-sm text-center animate-fade-in">
               {error}
             </div>
           )}
-          
+
           <button
             type="submit"
             disabled={isLoading}
-            className="mt-2 w-full py-2 rounded-lg bg-gradient-to-r from-blue-700 to-blue-500 hover:from-blue-800 hover:to-blue-600 text-white font-bold text-base shadow-md flex items-center justify-center gap-2 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="mt-2 w-full py-3 rounded-xl bg-gradient-to-r from-blue-700 via-blue-600 to-blue-500 hover:from-blue-800 hover:to-blue-600 text-white font-bold text-lg shadow-lg flex items-center justify-center gap-3 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <FiLogIn className="text-lg" />
+            <FiLogIn className="text-2xl" />
             {isLoading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </button>
         </form>
-        
-        <div className="text-center text-sm text-gray-500 mt-2">
+
+        <div className="text-center text-sm text-blue-900/70 mt-2">
           ¿Olvidaste tu contraseña?{' '}
-          <Link href="#" className="text-blue-600 hover:underline font-semibold">Recupérala aquí</Link>
+          <Link href="#" className="text-blue-700 hover:underline font-semibold">Recupérala aquí</Link>
         </div>
       </section>
-      
-      <footer className="mt-8 text-xs text-gray-400 text-center w-full">
-        © {new Date().getFullYear()} Academias Platform. Todos los derechos reservados.
+
+      </div>
+      <footer className="mb-4 text-xs text-white/80 text-center w-full drop-shadow-lg">
+        © {new Date().getFullYear()} Edocu Platform. Todos los derechos reservados.
       </footer>
     </main>
   );

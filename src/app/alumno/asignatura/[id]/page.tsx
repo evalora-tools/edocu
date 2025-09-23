@@ -57,6 +57,13 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
   }, [secciones]);
   const router = useRouter()
   const [curso, setCurso] = useState<Curso | null>(null)
+  const [currentPath, setCurrentPath] = useState<string>("");
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setCurrentPath(window.location.pathname);
+    }
+  }, []);
   const [academia, setAcademia] = useState<Academia | null>(null)
   const [cursos, setCursos] = useState<Curso[]>([])
   const [contenidos, setContenidos] = useState<{
@@ -125,8 +132,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
       if (newWindow) {
         newWindow.opener = null
       }
-  setLoading(true)
-  router.push('/alumno/asignatura/' + params.id)
+      // Ya no se recarga la página ni se pone loading
     }
   }
 
@@ -280,9 +286,9 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
   if (!curso) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-sky-25 via-sky-25 to-sky-100 flex flex-col">
       {/* Navigation Header - Fixed */}
-      <div className="bg-white border-b border-gray-200 fixed top-0 left-0 right-0 z-10">
+      <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30 fixed top-0 left-0 right-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
@@ -324,14 +330,15 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
 
       <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
         {/* Sidebar - Fixed */}
-        <div className="w-64 fixed left-0 top-16 bottom-0 bg-white border-r border-gray-200 overflow-y-auto">
+        <div className="w-64 fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto">
           <nav className="mt-5 px-2">
             <div className="space-y-1">
               <div 
                 onClick={() => router.push('/alumno')}
-                className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer"
+                className={`group flex items-center px-2 py-2 text-sm font-semibold rounded-lg shadow-sm cursor-pointer transition-all duration-150
+                  ${currentPath === '/alumno' ? 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-900' : 'bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700'}`}
               >
-                <span className="w-6 h-6 bg-gray-400 rounded text-white text-xs flex items-center justify-center mr-3">
+                <span className="w-6 h-6 bg-blue-400 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
@@ -340,7 +347,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
               </div>
 
               <div className="mt-8">
-                <h3 className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                <h3 className="px-3 text-xs font-semibold text-blue-700 uppercase tracking-wider my-3">
                   Mis Cursos
                 </h3>
                 <div className="mt-2 space-y-1">
@@ -348,14 +355,14 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                     <div 
                       key={cursoItem.id} 
                       onClick={() => router.push(`/alumno/asignatura/${cursoItem.id}`)}
-                      className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md cursor-pointer ${
-                        cursoItem.id === params.id 
+                      className={`group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150
+                        ${cursoItem.id === params.id 
                           ? 'bg-blue-50 text-blue-700' 
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                      }`}
+                          : 'bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm'}
+                      `}
                     >
-                      <span className={`w-6 h-6 rounded text-white text-xs flex items-center justify-center mr-3 ${
-                        cursoItem.id === params.id ? 'bg-blue-600' : 'bg-gray-400'
+                      <span className={`w-6 h-6 rounded text-blue-900 text-xs flex items-center justify-center mr-3 ${
+                        cursoItem.id === params.id ? 'bg-blue-200' : 'bg-blue-100'
                       }`}>
                         {cursoItem.nombre.charAt(0).toUpperCase()}
                       </span>
@@ -399,7 +406,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           </div>
 
           {/* Content Area */}
-          <div className="p-6 bg-gray-50">
+          <div className="p-6 bg-transparent">
             <div className="max-w-5xl mx-auto px-0">
               <h2 className="text-2xl font-semibold text-gray-800 mb-8">Contenidos de la asignatura</h2>
               

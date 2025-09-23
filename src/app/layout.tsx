@@ -4,7 +4,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 
 export const metadata: Metadata = {
   title: 'Edocu | Plataforma Virtual',
-  description: 'Plataforma de cursos de Academias',
+  description: 'Tu Aula Virtual',
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
