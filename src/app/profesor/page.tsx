@@ -143,7 +143,7 @@ export default function ProfesorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-cyan-25">
+    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-cyan-25 flex flex-col">
       {toast && (
         <Toast
           message={toast.message}
@@ -152,8 +152,8 @@ export default function ProfesorPage() {
         />
       )}
       
-      {/* Navigation Header */}
-      <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30">
+      {/* Navigation Header - Fixed */}
+      <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30 fixed top-0 left-0 right-0 z-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
@@ -186,9 +186,9 @@ export default function ProfesorPage() {
         </div>
       </div>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 min-h-screen backdrop-blur-md bg-white/80 shadow-md border-r border-white/30">
+      <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
+        {/* Sidebar - Fixed */}
+        <div className="w-64 fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto">
           <nav className="mt-5 px-2">
             <div className="space-y-1">
               <div className="bg-gradient-to-r from-blue-100 to-blue-50 text-blue-900 group flex items-center px-2 py-2 text-sm font-semibold rounded-lg shadow-sm">
@@ -247,9 +247,9 @@ export default function ProfesorPage() {
           </nav>
         </div>
 
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          <div className="max-w-6xl mx-auto">
+        {/* Main Content - Scrollable Area */}
+        <div className="flex-1 ml-64 overflow-y-auto h-[calc(100vh-4rem)]">
+          <div className="max-w-6xl mx-auto p-8">
             {cursos.length === 0 ? (
               <div className="text-center py-12">
                 <div className="mx-auto h-24 w-24 text-blue-300">
