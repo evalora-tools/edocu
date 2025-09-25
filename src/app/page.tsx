@@ -12,10 +12,10 @@ export default function Home() {
   }, [router])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-      <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 flex items-center gap-4 border border-white/30">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <div className="text-lg font-medium text-gray-700">Redirigiendo...</div>
+    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-cyan-25 flex items-center justify-center">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
+        <p className="mt-4 text-gray-600">Redirigiendo...</p>
       </div>
     </div>
   )

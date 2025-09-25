@@ -65,6 +65,41 @@ export type Database = {
           created_at?: string
         }
       }
+      video_watch_time: {
+        Row: {
+          id: string
+          user_id: string
+          contenido_id: string
+          session_start: string
+          session_end: string | null
+          watch_time_seconds: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          contenido_id: string
+          session_start?: string
+          session_end?: string | null
+          watch_time_seconds?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          contenido_id?: string
+          session_start?: string
+          session_end?: string | null
+          watch_time_seconds?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       [_ in never]: never

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Toast from '@/components/ui/Toast'
 import VdoCipherPlayer from '@/components/video/VdoCipherPlayer'
+import TimeMonitoringWarning from '@/components/ui/TimeMonitoringWarning'
 
 interface Curso {
   id: string;
@@ -78,6 +79,9 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
   const [showPlayerModal, setShowPlayerModal] = useState(false)
   const [isOpening, setIsOpening] = useState(false)
   const [selectedContent, setSelectedContent] = useState<Contenido | null>(null)
+  const [userId, setUserId] = useState<string | null>(null)
+  const [showTimeWarning, setShowTimeWarning] = useState(false)
+  const [pendingVideoData, setPendingVideoData] = useState<{ videoId: string; contenido: Contenido } | null>(null)
 
 
   const formatSeconds = (s?: string) => {
@@ -118,6 +122,19 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
     setSelectedContent(null)
   }
 
+  const handleWarningConfirm = () => {
+    if (pendingVideoData) {
+      setShowTimeWarning(false)
+      abrirReproductor(pendingVideoData.videoId, pendingVideoData.contenido)
+      setPendingVideoData(null)
+    }
+  }
+
+  const handleWarningCancel = () => {
+    setShowTimeWarning(false)
+    setPendingVideoData(null)
+  }
+
   const handleSuspiciousActivity = (reason: string) => {
     setToast({ 
       message: `Actividad sospechosa detectada: ${reason}. Tu cuenta puede estar siendo usada desde múltiples dispositivos.`, 
@@ -129,7 +146,11 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
   const openContent = (item: Contenido) => {
     if (!item.archivo_url) return
     if (item.tipo === 'clase') {
-      if (!isOpening) abrirReproductor(item.archivo_url, item)
+      if (!isOpening) {
+        // Mostrar advertencia antes de abrir el reproductor
+        setPendingVideoData({ videoId: item.archivo_url, contenido: item })
+        setShowTimeWarning(true)
+      }
     } else {
       const newWindow = window.open(item.archivo_url, '_blank')
       if (newWindow) {
@@ -151,6 +172,9 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           router.replace('/login')
           return
         }
+
+        // Capturar el userId
+        setUserId(session.user.id)
 
         setLoadingState('Verificando acceso al curso...')
 
@@ -272,10 +296,10 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 flex items-center gap-4 border border-white/30">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <div className="text-lg font-medium text-gray-700">{loadingState}</div>
+      <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-cyan-25 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">{loadingState}</p>
         </div>
       </div>
     )
@@ -612,6 +636,14 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
         </div>
       </div>
 
+      {/* Modal de Advertencia de Monitoreo */}
+      <TimeMonitoringWarning
+        isOpen={showTimeWarning}
+        onConfirm={handleWarningConfirm}
+        onCancel={handleWarningCancel}
+        titulo={pendingVideoData?.contenido.titulo}
+      />
+
       {/* Modal Reproductor Simple */}
       {showPlayerModal && playerData && selectedContent && (
         <VdoCipherPlayer
@@ -619,6 +651,8 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           playbackInfo={playerData.playbackInfo}
           titulo={selectedContent.titulo}
           onClose={closePlayerModal}
+          userId={userId || undefined}
+          contenidoId={selectedContent.id}
         />
       )}
     </div>

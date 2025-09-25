@@ -97,76 +97,92 @@ export default function GestorPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Cargando...</div>
+      <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-cyan-25 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Cargando panel de gestión...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="bg-white shadow-lg rounded-xl p-8 mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Panel de Gestión - {academia?.nombre}
-              </h1>
-              <p className="mt-2 text-gray-600">
-                Bienvenido, {profile?.nombre}
-              </p>
+    <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-cyan-25">
+      {/* Navigation Header */}
+      <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white font-medium text-sm">
+                    {academia?.nombre?.charAt(0).toUpperCase() || 'G'}
+                  </span>
+                </div>
+              </div>
+              <div className="ml-4">
+                <h1 className="text-xl font-medium text-gray-900">{academia?.nombre || 'Academia'}</h1>
+                <p className="text-sm text-gray-500">Panel de Gestión</p>
+              </div>
             </div>
-            <button
-              onClick={signOut}
-              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Cerrar Sesión
-            </button>
+            <div className="flex items-center space-x-4">
+              <span className="text-sm text-blue-900 font-medium">
+                Hola, {profile?.nombre}
+              </span>
+              <button
+                onClick={signOut}
+                className="text-sm text-blue-700 hover:text-blue-900 font-semibold"
+              >
+                Cerrar Sesión
+              </button>
+            </div>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/30">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-blue-100 text-blue-600">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">Profesores</h3>
-                <p className="text-3xl font-bold text-blue-600">{stats.profesores}</p>
+              <div className="ml-6">
+                <h3 className="text-sm font-medium text-gray-500 uppercase">Profesores</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.profesores}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/30">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-green-100 text-green-600">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-green-500 to-green-600 text-white shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">Alumnos</h3>
-                <p className="text-3xl font-bold text-green-600">{stats.alumnos}</p>
+              <div className="ml-6">
+                <h3 className="text-sm font-medium text-gray-500 uppercase">Alumnos</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.alumnos}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white rounded-xl shadow-lg p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-6 border border-white/30">
             <div className="flex items-center">
-              <div className="p-3 rounded-full bg-purple-100 text-purple-600">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="p-4 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 text-white shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-semibold text-gray-900">Cursos</h3>
-                <p className="text-3xl font-bold text-purple-600">{stats.cursos}</p>
+              <div className="ml-6">
+                <h3 className="text-sm font-medium text-gray-500 uppercase">Cursos</h3>
+                <p className="text-3xl font-bold text-gray-900 mt-1">{stats.cursos}</p>
               </div>
             </div>
           </div>
@@ -176,47 +192,71 @@ export default function GestorPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div 
             onClick={() => router.push('/gestor/profesores')}
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer"
+            className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-white/30"
           >
             <div className="text-center">
-              <div className="p-4 rounded-full bg-blue-100 text-blue-600 mx-auto w-16 h-16 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+              <div className="relative mb-6">
+                <div className="p-6 rounded-3xl bg-gradient-to-r from-blue-500 to-blue-600 text-white mx-auto w-20 h-20 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Gestionar Profesores</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">Añadir, editar y administrar profesores de tu academia</p>
+              <div className="mt-4 inline-flex items-center text-blue-600 font-medium text-sm group-hover:text-blue-700">
+                Administrar
+                <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Gestionar Profesores</h3>
-              <p className="text-gray-600 text-sm">Añadir, editar y administrar profesores de tu academia</p>
             </div>
           </div>
 
           <div 
             onClick={() => router.push('/gestor/alumnos')}
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer"
+            className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-white/30"
           >
             <div className="text-center">
-              <div className="p-4 rounded-full bg-green-100 text-green-600 mx-auto w-16 h-16 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+              <div className="relative mb-6">
+                <div className="p-6 rounded-3xl bg-gradient-to-r from-green-500 to-green-600 text-white mx-auto w-20 h-20 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Gestionar Alumnos</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">Añadir, editar y administrar alumnos de tu academia</p>
+              <div className="mt-4 inline-flex items-center text-green-600 font-medium text-sm group-hover:text-green-700">
+                Administrar
+                <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Gestionar Alumnos</h3>
-              <p className="text-gray-600 text-sm">Añadir, editar y administrar alumnos de tu academia</p>
             </div>
           </div>
 
           <div 
             onClick={() => router.push('/gestor/cursos')}
-            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow cursor-pointer"
+            className="group bg-white/80 backdrop-blur-sm rounded-2xl shadow-xl p-8 hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 cursor-pointer border border-white/30"
           >
             <div className="text-center">
-              <div className="p-4 rounded-full bg-purple-100 text-purple-600 mx-auto w-16 h-16 flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              <div className="relative mb-6">
+                <div className="p-6 rounded-3xl bg-gradient-to-r from-purple-500 to-purple-600 text-white mx-auto w-20 h-20 flex items-center justify-center shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-3">Gestionar Cursos</h3>
+              <p className="text-gray-600 text-sm leading-relaxed">Crear y administrar cursos de tu academia</p>
+              <div className="mt-4 inline-flex items-center text-purple-600 font-medium text-sm group-hover:text-purple-700">
+                Administrar
+                <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Gestionar Cursos</h3>
-              <p className="text-gray-600 text-sm">Crear y administrar cursos de tu academia</p>
             </div>
           </div>
         </div>

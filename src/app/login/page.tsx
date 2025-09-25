@@ -61,22 +61,23 @@ export default function Login() {
 
       console.log('✅ Perfil cargado:', profile);
 
-      // Redirigir según el rol
+      // Redirigir según el rol - NO resetear isLoading aquí para mantener la pantalla de carga durante la redirección
       switch (profile.role) {
         case 'admin':
           router.push('/admin');
-          break;
+          return; // Salir sin resetear isLoading
         case 'gestor':
           router.push('/gestor');
-          break;
+          return; // Salir sin resetear isLoading
         case 'profesor':
           router.push('/profesor');
-          break;
+          return; // Salir sin resetear isLoading
         case 'alumno':
           router.push('/alumno');
-          break;
+          return; // Salir sin resetear isLoading
         default:
           router.push('/');
+          return; // Salir sin resetear isLoading
       }
 
     } catch (err: any) {
@@ -86,8 +87,7 @@ export default function Login() {
       } else {
         setError('Error inesperado. Intenta nuevamente.');
       }
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Solo resetear en caso de error
     }
   };
 

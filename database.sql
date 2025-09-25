@@ -74,3 +74,18 @@ CREATE TABLE public.session_events (
   CONSTRAINT session_events_pkey PRIMARY KEY (id),
   CONSTRAINT session_events_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );
+CREATE TABLE public.video_watch_time (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  contenido_id uuid NOT NULL,
+  session_start timestamp with time zone NOT NULL DEFAULT now(),
+  session_end timestamp with time zone,
+  watch_time_seconds integer NOT NULL DEFAULT 0,
+  is_active boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT video_watch_time_pkey PRIMARY KEY (id),
+  CONSTRAINT video_watch_time_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id),
+  CONSTRAINT video_watch_time_contenido_id_fkey FOREIGN KEY (contenido_id) REFERENCES public.contenidos(id),
+  CONSTRAINT check_watch_time_positive CHECK (watch_time_seconds >= 0)
+);
