@@ -254,8 +254,10 @@ export default function ProfesorAnalyticsPage() {
               </span>
               <button
                 onClick={async () => {
-                  await supabase.auth.signOut();
-                  router.push('/login');
+                  if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+                    await supabase.auth.signOut();
+                    router.push('/login');
+                  }
                 }}
                 className="text-sm text-blue-700 hover:text-blue-900 font-semibold"
               >

@@ -91,8 +91,10 @@ export default function GestorPage() {
 
 
   const signOut = async () => {
-    await supabase.auth.signOut()
-    router.push('/login')
+    if (window.confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+      await supabase.auth.signOut()
+      router.push('/login')
+    }
   }
 
   if (loading) {
