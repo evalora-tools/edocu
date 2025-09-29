@@ -12,6 +12,13 @@ interface Curso {
   curso_academico: string
 }
 
+interface ClassDetail {
+  contentId: string
+  contentTitle: string
+  watchTime: number
+  sessions: number
+}
+
 interface StudentStat {
   userId: string
   userName: string
@@ -23,6 +30,7 @@ interface StudentStat {
   lastActivity: string
   clasesVisualizadas: string[]
   uniqueClassesCount: number
+  clasesDetalle: ClassDetail[]
 }
 
 interface ClassStat {
@@ -58,6 +66,18 @@ export default function ProfesorAnalyticsPage() {
   const [studentStats, setStudentStats] = useState<StudentStat[]>([])
   const [classStats, setClassStats] = useState<ClassStat[]>([])
   const [analyticsLoading, setAnalyticsLoading] = useState(false)
+  const [expandedStudents, setExpandedStudents] = useState<Set<string>>(new Set())
+
+  // Función para toggle de expansión de detalles por alumno
+  const toggleStudentExpand = (userId: string) => {
+    const newExpanded = new Set(expandedStudents)
+    if (newExpanded.has(userId)) {
+      newExpanded.delete(userId)
+    } else {
+      newExpanded.add(userId)
+    }
+    setExpandedStudents(newExpanded)
+  }
 
   // Función para formatear tiempo
   const formatTime = (seconds: number) => {
@@ -225,12 +245,12 @@ export default function ProfesorAnalyticsPage() {
                 </div>
               </div>
               <div className="ml-4">
-                <h1 className="text-xl font-medium text-gray-900">Analytics de Visualización</h1>
+                <h1 className="text-xl font-medium text-gray-900">Análisis de Visualización</h1>
               </div>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-blue-900 font-medium">
-                Analytics
+                Estadísticas
               </span>
               <button
                 onClick={async () => {
@@ -281,7 +301,7 @@ export default function ProfesorAnalyticsPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </span>
-                Analytics
+                Estadísticas
               </div>
 
               <div className="mt-8">
@@ -382,33 +402,88 @@ export default function ProfesorAnalyticsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Última Actividad
                       </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Detalles
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {studentStats.map((student) => (
-                      <tr key={student.userId}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{student.userName}</div>
-                            <div className="text-sm text-gray-500">{student.userEmail}</div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{student.totalSessions}</div>
-                          {student.activeSessions > 0 && (
-                            <div className="text-xs text-yellow-600">{student.activeSessions} activa(s)</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{formatTime(student.totalWatchTime)}</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{student.uniqueClassesCount} clases</div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {student.lastActivity ? formatDate(student.lastActivity) : 'N/A'}
-                        </td>
-                      </tr>
+                      <>
+                        <tr key={student.userId} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{student.userName}</div>
+                              <div className="text-sm text-gray-500">{student.userEmail}</div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{student.totalSessions}</div>
+                            {student.activeSessions > 0 && (
+                              <div className="text-xs text-yellow-600">{student.activeSessions} activa(s)</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{formatTime(student.totalWatchTime)}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{student.uniqueClassesCount} clases</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                            {student.lastActivity ? formatDate(student.lastActivity) : 'N/A'}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <button
+                              onClick={() => toggleStudentExpand(student.userId)}
+                              className="inline-flex items-center px-3 py-1 border border-transparent text-xs leading-4 font-medium rounded text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                            >
+                              {expandedStudents.has(student.userId) ? (
+                                <>
+                                  <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                  </svg>
+                                  Ocultar
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                  Ver desglose
+                                </>
+                              )}
+                            </button>
+                          </td>
+                        </tr>
+                        {expandedStudents.has(student.userId) && (
+                          <tr key={`${student.userId}-details`}>
+                            <td colSpan={6} className="px-6 py-4 bg-gray-50">
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-medium text-gray-900 mb-3">Desglose por clase:</h4>
+                                <div className="grid gap-2">
+                                  {student.clasesDetalle && student.clasesDetalle.length > 0 ? (
+                                    student.clasesDetalle.map((clase) => (
+                                      <div key={clase.contentId} className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
+                                        <div className="flex-1">
+                                          <div className="text-sm font-medium text-gray-900">{clase.contentTitle}</div>
+                                          <div className="text-xs text-gray-500">{clase.sessions} sesión(es)</div>
+                                        </div>
+                                        <div className="text-sm font-semibold text-blue-600">
+                                          {formatTime(clase.watchTime)}
+                                        </div>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="text-sm text-gray-500 text-center py-4">
+                                      No hay clases visualizadas
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
                     ))}
                   </tbody>
                 </table>

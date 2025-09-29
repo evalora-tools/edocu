@@ -8,9 +8,8 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const supabase = createRouteHandlerClient({ cookies })
-    const { searchParams } = new URL(request.url)
-    const cursoId = searchParams.get('curso_id')
-    const contenidoId = searchParams.get('contenido_id')
+    const cursoId = request.nextUrl.searchParams.get('curso_id')
+    const contenidoId = request.nextUrl.searchParams.get('contenido_id')
 
     // Verificar autenticación
     const { data: { session } } = await supabase.auth.getSession()

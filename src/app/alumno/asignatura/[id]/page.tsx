@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import Toast from '@/components/ui/Toast'
 import VdoCipherPlayer from '@/components/video/VdoCipherPlayer'
 import TimeMonitoringWarning from '@/components/ui/TimeMonitoringWarning'
+import FilePreviewer from '@/components/ui/FilePreviewer'
 
 interface Curso {
   id: string;
@@ -82,6 +83,10 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
   const [userId, setUserId] = useState<string | null>(null)
   const [showTimeWarning, setShowTimeWarning] = useState(false)
   const [pendingVideoData, setPendingVideoData] = useState<{ videoId: string; contenido: Contenido } | null>(null)
+  
+  // Estados para el previsualizador de archivos
+  const [showFilePreviewer, setShowFilePreviewer] = useState(false)
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; fileName?: string } | null>(null)
 
 
   const formatSeconds = (s?: string) => {
@@ -152,11 +157,17 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
         setShowTimeWarning(true)
       }
     } else {
-      const newWindow = window.open(item.archivo_url, '_blank')
-      if (newWindow) {
-        newWindow.opener = null
-      }
-      // Ya no se recarga la página ni se pone loading
+      // Para archivos que no son clases, usar el previsualizador
+      // Extraer el nombre del archivo de la URL para detectar extensión
+      const urlParts = item.archivo_url.split('/');
+      const fileNameFromUrl = urlParts[urlParts.length - 1];
+      
+      setPreviewFile({
+        url: item.archivo_url,
+        name: item.titulo, // Mostrar el título bonito
+        fileName: fileNameFromUrl // Archivo técnico para detección de tipo
+      })
+      setShowFilePreviewer(true)
     }
   }
 
@@ -653,6 +664,20 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           onClose={closePlayerModal}
           userId={userId || undefined}
           contenidoId={selectedContent.id}
+        />
+      )}
+
+      {/* Modal Previsualizador de Archivos */}
+      {showFilePreviewer && previewFile && (
+        <FilePreviewer
+          isOpen={showFilePreviewer}
+          onClose={() => {
+            setShowFilePreviewer(false)
+            setPreviewFile(null)
+          }}
+          fileUrl={previewFile.url}
+          fileName={previewFile.name}
+          technicalFileName={previewFile.fileName}
         />
       )}
     </div>

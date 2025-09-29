@@ -166,8 +166,8 @@ export default function Login() {
         </form>
 
         <div className="text-center text-sm text-blue-900/70 mt-2">
-          ¿Olvidaste tu contraseña?{' '}
-          <Link href="#" className="text-blue-700 hover:underline font-semibold">Recupérala aquí</Link>
+          Ante cualquier problema, contacta con tu administrador{' '}
+          <Link href="#" className="text-blue-700 hover:underline font-semibold"></Link>
         </div>
       </section>
 

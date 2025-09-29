@@ -10,8 +10,10 @@ interface Alumno {
   email: string
   nombre?: string
   created_at: string
-  curso_nombre?: string
-  curso_id?: string
+  cursos: Array<{
+    id: string
+    nombre: string
+  }>
 }
 
 interface Academia {
@@ -165,35 +167,48 @@ export default function ProfesorAlumnosPage() {
         perfil.cursos_adquiridos.length > 0
       ) || []
 
-      // Filtrar alumnos que tienen al menos un curso en común con el profesor
-      const alumnosFiltrados: Alumno[] = []
+      // Filtrar y agrupar alumnos que tienen al menos un curso en común con el profesor
+      const alumnosMap = new Map<string, Alumno>()
       
       alumnos.forEach(alumno => {
         const cursosAlumno = alumno.cursos_adquiridos || []
         const cursosEnComun = cursosAlumno.filter((cursoId: string) => cursosAsignados.includes(cursoId))
         
         if (cursosEnComun.length > 0) {
-          // Agregar un registro por cada curso en común
-          cursosEnComun.forEach((cursoId: string) => {
-            alumnosFiltrados.push({
+          if (alumnosMap.has(alumno.id)) {
+            // Si el alumno ya existe, agregar los cursos nuevos
+            const alumnoExistente = alumnosMap.get(alumno.id)!
+            cursosEnComun.forEach((cursoId: string) => {
+              const cursoExiste = alumnoExistente.cursos.some(curso => curso.id === cursoId)
+              if (!cursoExiste) {
+                alumnoExistente.cursos.push({
+                  id: cursoId,
+                  nombre: cursosMap[cursoId] || 'Curso sin nombre'
+                })
+              }
+            })
+          } else {
+            // Crear nuevo alumno con sus cursos
+            alumnosMap.set(alumno.id, {
               id: alumno.id,
               email: alumno.email,
               nombre: alumno.nombre,
               created_at: alumno.created_at,
-              curso_nombre: cursosMap[cursoId] || 'Curso sin nombre',
-              curso_id: cursoId
+              cursos: cursosEnComun.map((cursoId: string) => ({
+                id: cursoId,
+                nombre: cursosMap[cursoId] || 'Curso sin nombre'
+              }))
             })
-          })
+          }
         }
       })
 
-      // Ordenar por nombre del alumno y luego por curso
+      const alumnosFiltrados = Array.from(alumnosMap.values())
+
+      // Ordenar por nombre del alumno
       alumnosFiltrados.sort((a, b) => {
         const nombreA = a.nombre || a.email
         const nombreB = b.nombre || b.email
-        if (nombreA === nombreB) {
-          return (a.curso_nombre || '').localeCompare(b.curso_nombre || '')
-        }
         return nombreA.localeCompare(nombreB)
       })
 
@@ -302,7 +317,7 @@ export default function ProfesorAlumnosPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </span>
-                Analytics
+                Estadísticas
               </div>
 
               <div className="mt-8">
@@ -370,8 +385,8 @@ export default function ProfesorAlumnosPage() {
                 <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
                   <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="col-span-4">Estudiante</div>
-                    <div className="col-span-4">Curso</div>
-                    <div className="col-span-3">Fecha matriculación</div>
+                    <div className="col-span-5">Cursos</div>
+                    <div className="col-span-2">Fecha matriculación</div>
                     <div className="col-span-1"></div>
                   </div>
                 </div>
@@ -380,7 +395,7 @@ export default function ProfesorAlumnosPage() {
                 <div className="divide-y divide-gray-100">
                   {alumnosFiltrados.map((alumno, index) => (
                     <div
-                      key={`${alumno.id}-${alumno.curso_id}-${index}`}
+                      key={alumno.id}
                       className="px-6 py-4 hover:bg-gray-50 transition-colors"
                     >
                       <div className="grid grid-cols-12 gap-4 items-center">
@@ -394,17 +409,26 @@ export default function ProfesorAlumnosPage() {
                             </p>
                           </div>
                         </div>
-                        <div className="col-span-4">
-                          <p className="text-sm text-gray-900">{alumno.curso_nombre}</p>
+                        <div className="col-span-5">
+                          <div className="flex flex-wrap gap-1">
+                            {alumno.cursos.map((curso, cursoIndex) => (
+                              <span
+                                key={curso.id}
+                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                              >
+                                {curso.nombre}
+                              </span>
+                            ))}
+                          </div>
                         </div>
-                        <div className="col-span-3">
+                        <div className="col-span-2">
                           <p className="text-sm text-gray-500">
                             {new Date(alumno.created_at).toLocaleDateString('es-ES')}
                           </p>
                         </div>
                         <div className="col-span-1 text-right">
                           <button
-                            onClick={() => window.open(`mailto:${alumno.email}?subject=Consulta sobre ${alumno.curso_nombre}`, '_blank')}
+                            onClick={() => window.open(`mailto:${alumno.email}?subject=Consulta sobre cursos`, '_blank')}
                             className="text-gray-400 hover:text-blue-600 transition-colors p-1"
                             title="Enviar email"
                           >

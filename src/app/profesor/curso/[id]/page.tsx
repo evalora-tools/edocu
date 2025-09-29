@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Toast from '@/components/ui/Toast'
+import FilePreviewer from '@/components/ui/FilePreviewer'
 
 interface Curso {
   id: string
@@ -70,6 +71,9 @@ export default function ProfesorCursoPage() {
   const [seccionForm, setSeccionForm] = useState({ titulo: '' })
   // Estado para controlar el despliegue de secciones
   const [openSecciones, setOpenSecciones] = useState<{ [id: string]: boolean }>({})
+  // Estados para el previsualizador de archivos
+  const [showFilePreviewer, setShowFilePreviewer] = useState(false)
+  const [previewFile, setPreviewFile] = useState<{ url: string; name: string; technicalFileName?: string } | null>(null)
 
   // Abrir todas las secciones por defecto cuando cambian
   useEffect(() => {
@@ -393,9 +397,18 @@ export default function ProfesorCursoPage() {
         setIsOpening(false)
       }
     } else {
-      // Para archivos, abrir en nueva pestaña
+      // Para archivos, abrir en el previsualizador
       if (contenido.archivo_url) {
-        window.open(contenido.archivo_url, '_blank')
+        // Extraer el nombre técnico del archivo de la URL para la detección de tipo
+        const urlParts = contenido.archivo_url.split('/')
+        const technicalFileName = urlParts[urlParts.length - 1]
+        
+        setPreviewFile({
+          url: contenido.archivo_url,
+          name: contenido.titulo,
+          technicalFileName: technicalFileName
+        })
+        setShowFilePreviewer(true)
       } else {
         setToast({ message: 'Archivo no disponible', type: 'error' })
       }
@@ -460,7 +473,7 @@ export default function ProfesorCursoPage() {
       }
 
       if (uploadType === 'clase' && uploadForm.archivo instanceof File) {
-        setToast({ message: 'Subiendo video a VdoCipher...', type: 'success' });
+        setToast({ message: 'Subiendo video...', type: 'success' });
         
         // 1. Crear upload link en VdoCipher
         const createRes = await fetch('/api/admin/clases/upload', {
@@ -726,7 +739,7 @@ export default function ProfesorCursoPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </span>
-                Analytics
+                Estadísticas
               </div>
 
               <div className="mt-8">
@@ -765,163 +778,193 @@ export default function ProfesorCursoPage() {
             <div className="h-52 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mb-12 relative overflow-hidden">
               <div className="absolute inset-0 p-8 text-white">
                 <h1 className="text-4xl font-normal mb-2">{curso.nombre}</h1>
-                <p className="text-blue-100 text-lg">{curso.curso_academico}</p>
-              </div>
-              <div className="absolute top-6 right-6">
-                <button
-                  onClick={() => setUploadModal(true)}
-                  className="bg-blue-700 text-white px-4 py-2 rounded-lg hover:bg-blue-800 transition-colors flex items-center space-x-2"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-                  </svg>
-                  <span>Subir Archivo</span>
-                </button>
+                <p className="text-blue-100 text-lg">
+                  {(() => {
+                    const map: Record<string, string> = {
+                      'primero': '1º Curso',
+                      'segundo': '2º Curso',
+                      'tercero': '3º Curso',
+                      'cuarto': '4º Curso',
+                      'quinto': '5º Curso',
+                      'sexto': '6º Curso',
+                      'séptimo': '7º Curso',
+                      'octavo': '8º Curso',
+                    };
+                    return map[curso.curso_academico?.toLowerCase()] || curso.curso_academico;
+                  })()}
+                </p>
               </div>
             </div>
 
             {/* Content Sections */}
             <div className="flex justify-between items-center mb-8">
               <h2 className="text-2xl font-normal text-gray-900">Contenido del Curso</h2>
-              <button
-                onClick={() => setShowSeccionModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                <span>Nueva Sección</span>
-              </button>
+              <div className="flex space-x-3">
+                <button
+                  onClick={() => setUploadModal(true)}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                  </svg>
+                  <span>Subir Archivo</span>
+                </button>
+                <button
+                  onClick={() => setShowSeccionModal(true)}
+                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                  </svg>
+                  <span>Nueva Sección</span>
+                </button>
+              </div>
             </div>
 
             <div className="space-y-12">
-              {secciones.map((seccion) => (
-                <section key={seccion.id} className="mb-12">
-                  <div className="flex items-center justify-between mb-6 cursor-pointer select-none" onClick={() => setOpenSecciones(prev => ({ ...prev, [seccion.id]: !prev[seccion.id] }))}>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        aria-label={openSecciones[seccion.id] ? 'Colapsar sección' : 'Expandir sección'}
-                        className="focus:outline-none"
-                        tabIndex={-1}
-                      >
-                        <svg className={`w-5 h-5 transition-transform duration-200 ${openSecciones[seccion.id] ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                      <h2 className="text-2xl font-normal text-gray-900">{seccion.titulo}</h2>
-                    </div>
-                    <button
-                      onClick={e => { e.stopPropagation(); handleDeleteSeccion(seccion.id); }}
-                      className="text-gray-400 hover:text-red-600 transition-colors"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                    </button>
+              {secciones.length === 0 && contenidos.filter(c => !c.seccion_id).length === 0 ? (
+                <div className="text-center py-16">
+                  <div className="mx-auto h-24 w-24 text-blue-300 mb-6">
+                    <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
                   </div>
-                  {openSecciones[seccion.id] && (
-                    <div className="space-y-4">
-                      {contenidos
-                        .filter(c => c.seccion_id === seccion.id)
-                        .map((contenido) => (
-                          <div 
-                            key={contenido.id} 
-                            onClick={() => handleOpenContent(contenido)}
-                            className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                  <h3 className="text-xl font-semibold text-gray-900 mb-2">No hay contenidos en esta asignatura</h3>
+                  <p className="text-gray-600 max-w-md mx-auto">
+                    Comienza a organizar tu curso añadiendo una nueva sección y subiendo material educativo.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {secciones.map((seccion) => (
+                    <section key={seccion.id} className="mb-12">
+                      <div className="flex items-center justify-between mb-6 cursor-pointer select-none" onClick={() => setOpenSecciones(prev => ({ ...prev, [seccion.id]: !prev[seccion.id] }))}>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            aria-label={openSecciones[seccion.id] ? 'Colapsar sección' : 'Expandir sección'}
+                            className="focus:outline-none"
+                            tabIndex={-1}
                           >
-                            <div className="flex items-start p-4">
-                              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-4">
-                                {contenido.tipo === 'apunte' ? (
-                                  // Icono de libro abierto (Heroicons outline)
-                                  <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6c-2.28-1.2-4.72-2-7-2v14c2.28 0 4.72.8 7 2m0-14c2.28-1.2 4.72-2 7-2v14c-2.28 0-4.72.8-7 2m0-14v14" />
-                                  </svg>
-                                ) : (
-                                  // Icono de video (actual)
-                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                  </svg>
-                                )}
-                              </div>
-                              <div className="flex-1">
-                                <h3 className="font-medium text-gray-900 mb-1">{contenido.titulo}</h3>
-                                <p className="text-gray-600 text-sm mb-2">{contenido.descripcion}</p>
-                                <div className="flex items-center justify-between">
-                                  <p className="text-xs text-gray-500">{new Date(contenido.created_at).toLocaleDateString()}</p>
-                                  {contenido.estado_procesamiento && (
-                                    getStatusBadge(contenido.estado_procesamiento as 'processing' | 'ready' | 'failed')
-                                  )}
-                                </div>
-                              </div>
-                              <button
-                                onClick={e => { e.stopPropagation(); handleDelete(contenido.id); }}
-                                className="text-red-500 hover:text-red-700 ml-4"
-                              >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            </div>
-                          </div>
-                        ))}
-                      {contenidos.filter(c => c.seccion_id === seccion.id).length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          No hay contenido en esta sección
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </section>
-              ))}
-              {/* Contenidos sin sección: se muestran arriba, sin título */}
-              {contenidos.filter(c => !c.seccion_id).length > 0 && (
-                <div className="mb-12 space-y-4">
-                  {contenidos.filter(c => !c.seccion_id).map((contenido) => (
-                    <div 
-                      key={contenido.id} 
-                      onClick={() => handleOpenContent(contenido)}
-                      className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer"
-                    >
-                      <div className="flex items-start p-4">
-                        <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-4">
-                          {contenido.tipo === 'apunte' ? (
-                            // Icono de libro abierto (Heroicons outline)
-                            <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6c-2.28-1.2-4.72-2-7-2v14c2.28 0 4.72.8 7 2m0-14c2.28-1.2 4.72-2 7-2v14c-2.28 0-4.72.8-7 2m0-14v14" />
+                            <svg className={`w-5 h-5 transition-transform duration-200 ${openSecciones[seccion.id] ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                             </svg>
-                          ) : (
-                            // Icono de video (actual)
-                            <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                          )}
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 mb-1">{contenido.titulo}</h3>
-                          <p className="text-gray-600 text-sm mb-2">{contenido.descripcion}</p>
-                          <div className="flex items-center justify-between">
-                            <p className="text-xs text-gray-500">{new Date(contenido.created_at).toLocaleDateString()}</p>
-                            {contenido.estado_procesamiento && (
-                              getStatusBadge(contenido.estado_procesamiento as 'processing' | 'ready' | 'failed')
-                            )}
-                          </div>
+                          </button>
+                          <h2 className="text-2xl font-normal text-gray-900">{seccion.titulo}</h2>
                         </div>
                         <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleDelete(contenido.id)
-                          }}
-                          className="text-red-500 hover:text-red-700 ml-4"
+                          onClick={e => { e.stopPropagation(); handleDeleteSeccion(seccion.id); }}
+                          className="text-gray-400 hover:text-red-600 transition-colors"
                         >
                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                           </svg>
                         </button>
                       </div>
-                    </div>
+                      {openSecciones[seccion.id] && (
+                        <div className="space-y-4">
+                          {contenidos
+                            .filter(c => c.seccion_id === seccion.id)
+                            .map((contenido) => (
+                              <div 
+                                key={contenido.id} 
+                                onClick={() => handleOpenContent(contenido)}
+                                className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                              >
+                                <div className="flex items-start p-4">
+                                  <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                                    {contenido.tipo === 'apunte' ? (
+                                      // Icono de libro abierto (Heroicons outline)
+                                      <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6c-2.28-1.2-4.72-2-7-2v14c2.28 0 4.72.8 7 2m0-14c2.28-1.2 4.72-2 7-2v14c-2.28 0-4.72.8-7 2m0-14v14" />
+                                      </svg>
+                                    ) : (
+                                      // Icono de video (actual)
+                                      <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                      </svg>
+                                    )}
+                                  </div>
+                                  <div className="flex-1">
+                                    <h3 className="font-medium text-gray-900 mb-1">{contenido.titulo}</h3>
+                                    <p className="text-gray-600 text-sm mb-2">{contenido.descripcion}</p>
+                                    <div className="flex items-center justify-between">
+                                      <p className="text-xs text-gray-500">{new Date(contenido.created_at).toLocaleDateString()}</p>
+                                      {contenido.estado_procesamiento && (
+                                        getStatusBadge(contenido.estado_procesamiento as 'processing' | 'ready' | 'failed')
+                                      )}
+                                    </div>
+                                  </div>
+                                  <button
+                                    onClick={e => { e.stopPropagation(); handleDelete(contenido.id); }}
+                                    className="text-red-500 hover:text-red-700 ml-4"
+                                  >
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          {contenidos.filter(c => c.seccion_id === seccion.id).length === 0 && (
+                            <div className="text-center py-8 text-gray-500">
+                              No hay contenido en esta sección
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </section>
                   ))}
-                </div>
+                  {/* Contenidos sin sección: se muestran arriba, sin título */}
+                  {contenidos.filter(c => !c.seccion_id).length > 0 && (
+                    <div className="mb-12 space-y-4">
+                      {contenidos.filter(c => !c.seccion_id).map((contenido) => (
+                        <div 
+                          key={contenido.id} 
+                          onClick={() => handleOpenContent(contenido)}
+                          className="bg-white rounded-lg border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer"
+                        >
+                          <div className="flex items-start p-4">
+                            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center mr-4">
+                              {contenido.tipo === 'apunte' ? (
+                                // Icono de libro abierto (Heroicons outline)
+                                <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6c-2.28-1.2-4.72-2-7-2v14c2.28 0 4.72.8 7 2m0-14c2.28-1.2 4.72-2 7-2v14c-2.28 0-4.72.8-7 2m0-14v14" />
+                                </svg>
+                              ) : (
+                                // Icono de video (actual)
+                                <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                </svg>
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <h3 className="font-medium text-gray-900 mb-1">{contenido.titulo}</h3>
+                              <p className="text-gray-600 text-sm mb-2">{contenido.descripcion}</p>
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs text-gray-500">{new Date(contenido.created_at).toLocaleDateString()}</p>
+                                {contenido.estado_procesamiento && (
+                                  getStatusBadge(contenido.estado_procesamiento as 'processing' | 'ready' | 'failed')
+                                )}
+                              </div>
+                            </div>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDelete(contenido.id)
+                              }}
+                              className="text-red-500 hover:text-red-700 ml-4"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
@@ -1147,6 +1190,20 @@ export default function ProfesorCursoPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Previsualizador de Archivos */}
+      {previewFile && (
+        <FilePreviewer
+          isOpen={showFilePreviewer}
+          onClose={() => {
+            setShowFilePreviewer(false)
+            setPreviewFile(null)
+          }}
+          fileUrl={previewFile.url}
+          fileName={previewFile.name}
+          technicalFileName={previewFile.technicalFileName}
+        />
       )}
     </div>
   )

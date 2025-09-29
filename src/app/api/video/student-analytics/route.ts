@@ -11,9 +11,8 @@ export async function GET(request: NextRequest) {
     const supabase = createRouteHandlerClient({ cookies })
     
     // Obtener parámetros de la URL
-    const { searchParams } = new URL(request.url)
-    const studentId = searchParams.get('studentId')
-    const courseId = searchParams.get('courseId')
+    const studentId = request.nextUrl.searchParams.get('studentId')
+    const courseId = request.nextUrl.searchParams.get('courseId')
     
     // Verificar autenticación usando sesión
     const { data: { session }, error: sessionError } = await supabase.auth.getSession()

@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const profesorId = searchParams.get('profesorId');
-    const cursoId = searchParams.get('cursoId');
+    const profesorId = request.nextUrl.searchParams.get('profesorId');
+    const cursoId = request.nextUrl.searchParams.get('cursoId');
 
     if (!profesorId) {
       return NextResponse.json(
@@ -105,12 +107,15 @@ export async function GET(request: NextRequest) {
       total + (session.watch_time_seconds || 0), 0
     );
 
-    // Estadísticas por alumno
+    // Estadísticas por alumno con desglose por clase
     const studentStats = finalSessions.reduce((acc, session) => {
       const userId = session.user_id;
       const user = usersMap[userId];
       const userName = user?.nombre || 'Usuario desconocido';
       const userEmail = user?.email || '';
+      const contenidos = Array.isArray(session.contenidos) ? session.contenidos[0] : session.contenidos;
+      const contentId = session.contenido_id;
+      const contentTitle = contenidos?.titulo || 'Clase desconocida';
 
       if (!acc[userId]) {
         acc[userId] = {
@@ -122,7 +127,8 @@ export async function GET(request: NextRequest) {
           completedSessions: 0,
           activeSessions: 0,
           lastActivity: null,
-          clasesVisualizadas: new Set()
+          clasesVisualizadas: new Set(),
+          clasesDetalle: new Map() // Desglose por clase
         };
       }
 
@@ -137,9 +143,22 @@ export async function GET(request: NextRequest) {
         acc[userId].activeSessions++;
       }
 
-      const contenidos = Array.isArray(session.contenidos) ? session.contenidos[0] : session.contenidos;
-      if (contenidos?.titulo) {
-        acc[userId].clasesVisualizadas.add(contenidos.titulo);
+      if (contentTitle) {
+        acc[userId].clasesVisualizadas.add(contentTitle);
+        
+        // Agregar desglose por clase
+        if (!acc[userId].clasesDetalle.has(contentId)) {
+          acc[userId].clasesDetalle.set(contentId, {
+            contentId,
+            contentTitle,
+            watchTime: 0,
+            sessions: 0
+          });
+        }
+        
+        const claseDetalle = acc[userId].clasesDetalle.get(contentId);
+        claseDetalle.watchTime += session.watch_time_seconds || 0;
+        claseDetalle.sessions++;
       }
 
       // Actualizar última actividad
@@ -151,11 +170,12 @@ export async function GET(request: NextRequest) {
       return acc;
     }, {} as Record<string, any>);
 
-    // Convertir Set a array para la respuesta
+    // Convertir Set y Map a arrays para la respuesta
     const studentStatsArray = Object.values(studentStats).map((student: any) => ({
       ...student,
       clasesVisualizadas: Array.from(student.clasesVisualizadas),
-      uniqueClassesCount: student.clasesVisualizadas.size
+      uniqueClassesCount: student.clasesVisualizadas.size,
+      clasesDetalle: Array.from(student.clasesDetalle.values()).sort((a: any, b: any) => b.watchTime - a.watchTime)
     }));
 
     // Estadísticas por clase
