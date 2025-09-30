@@ -47,6 +47,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
   const [secciones, setSecciones] = useState<Seccion[]>([])
   const [openSecciones, setOpenSecciones] = useState<{ [id: string]: boolean }>({})
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Abrir todas las secciones por defecto cuando cambian
   useEffect(() => {
@@ -329,61 +330,85 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
     <div className="min-h-screen bg-gradient-to-br from-sky-25 via-sky-25 to-sky-100 flex flex-col">
       {/* Navigation Header - Fixed */}
       <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30 fixed top-0 left-0 right-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center">
               <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={() => {
+                  // En móviles, controlar el menú mobile
+                  const isMobile = window.innerWidth < 768;
+                  if (isMobile) {
+                    setMobileMenuOpen(!mobileMenuOpen);
+                  } else {
+                    setSidebarCollapsed(!sidebarCollapsed);
+                  }
+                }}
+                className="mr-2 sm:mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 title={sidebarCollapsed ? "Expandir sidebar" : "Contraer sidebar"}
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
               <button
                 onClick={() => router.push('/alumno')}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="mr-2 sm:mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <div className="flex-shrink-0 hidden sm:block">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-600 rounded flex items-center justify-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
                   </svg>
                 </div>
               </div>
-              <div className="ml-4">
-                <h1 className="text-xl font-medium text-gray-900">{academia?.nombre || 'Academia'}</h1>
+              <div className="ml-2 sm:ml-4 hidden sm:block">
+                <h1 className="text-lg sm:text-xl font-medium text-gray-900">{academia?.nombre || 'Academia'}</h1>
               </div>
             </div>
             <div className="flex items-center">
-              <div className="mr-4">
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white font-medium text-sm">
+              <div className="mr-2 sm:mr-4">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white font-medium text-xs sm:text-sm">
                     {curso.nombre.charAt(0).toUpperCase()}
                   </span>
                 </div>
               </div>
-              <div>
-                <h2 className="text-lg font-medium text-gray-900">{curso.nombre}</h2>
-                <p className="text-sm text-gray-500">{curso.universidad}</p>
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-lg font-medium text-gray-900 truncate">{curso.nombre}</h2>
+                <p className="text-xs sm:text-sm text-gray-500 truncate hidden sm:block">{curso.universidad}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
+      <div className="flex pt-14 sm:pt-16"> {/* Added padding-top to account for fixed header */}
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
         {/* Sidebar - Fixed */}
-        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out`}>
+        <div className={`
+          ${sidebarCollapsed ? 'w-16' : 'w-64'} 
+          fixed left-0 top-14 sm:top-16 bottom-0 backdrop-blur-md bg-white/95 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out z-30
+          md:block
+          ${mobileMenuOpen ? 'block' : 'hidden md:block'}
+        `}>
           <nav className="mt-5 px-2">
             <div className="space-y-1">
               <div 
-                onClick={() => router.push('/alumno')}
+                onClick={() => {
+                  router.push('/alumno');
+                  setMobileMenuOpen(false);
+                }}
                 className={`group flex items-center px-2 py-2 text-sm font-semibold rounded-lg shadow-sm cursor-pointer transition-all duration-150
                   ${currentPath === '/alumno' ? 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-900' : 'bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700'}`}
                 title={sidebarCollapsed ? "Inicio" : ""}
@@ -406,7 +431,10 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                   {cursos.map((cursoItem) => (
                     <div 
                       key={cursoItem.id} 
-                      onClick={() => router.push(`/alumno/asignatura/${cursoItem.id}`)}
+                      onClick={() => {
+                        router.push(`/alumno/asignatura/${cursoItem.id}`);
+                        setMobileMenuOpen(false);
+                      }}
                       className={`group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150
                         ${cursoItem.id === params.id 
                           ? 'bg-blue-50 text-blue-700' 
@@ -429,15 +457,15 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
         </div>
 
         {/* Main Content - Scrollable Area */}
-        <div className={`flex-1 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} overflow-y-auto h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}> {/* height: 100vh - header height */}
+        <div className={`flex-1 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} overflow-y-auto h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}> {/* height: 100vh - header height */}
           {/* Course Header - Card Style igual que profesor, con más separación */}
-          <div className="max-w-6xl mx-auto px-6 pt-8">
+          <div className="max-w-6xl mx-auto px-3 sm:px-6 pt-4 sm:pt-8">
       <div 
-  className="relative rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-16 mb-5 shadow-md flex flex-col items-start justify-start"
-  style={{ minHeight: '250px', paddingTop: '2.7rem', paddingBottom: '2.7rem' }}
+  className="relative rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-4 sm:px-8 lg:px-16 mb-3 sm:mb-5 shadow-md flex flex-col items-start justify-start"
+  style={{ minHeight: '180px', paddingTop: '1.5rem', paddingBottom: '1.5rem' }}
       >
-  <h1 className="text-4xl font-semibold text-white mb-1 pl-0 mt-0">{curso.nombre}</h1>
-        <p className="text-xl text-blue-100 text-left pl-1">
+  <h1 className="text-xl sm:text-2xl lg:text-4xl font-semibold text-white mb-1 pl-0 mt-0">{curso.nombre}</h1>
+        <p className="text-sm sm:text-lg lg:text-xl text-blue-100 text-left pl-0 sm:pl-1">
           {(() => {
             const map: Record<string, string> = {
               'primero': '1º Curso',
@@ -452,24 +480,24 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
             return map[curso.curso_academico?.toLowerCase()] || curso.curso_academico;
           })()}
         </p>
-        <span className="absolute right-8 bottom-3 text-xs text-blue-200 select-none pointer-events-none">
+        <span className="absolute right-2 sm:right-4 lg:right-8 bottom-2 sm:bottom-3 text-xs text-blue-200 select-none pointer-events-none hidden sm:block">
           Todos los archivos están protegidos y sus derechos reservados ©
         </span>
       </div>
           </div>
 
           {/* Content Area */}
-          <div className="p-6 bg-transparent">
+          <div className="p-3 sm:p-6 bg-transparent">
             <div className="max-w-5xl mx-auto px-0">
-              <h2 className="text-2xl font-semibold text-gray-800 mb-8">Contenidos de la asignatura</h2>
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-800 mb-4 sm:mb-8">Contenidos de la asignatura</h2>
               
               {/* Secciones y contenidos */}
               {secciones.map(seccion => {
                 const contenidosSeccion = [...contenidos.apuntes, ...contenidos.problemas, ...contenidos.clases].filter(c => c.seccion_id === seccion.id)
                 if (contenidosSeccion.length === 0) return null
                 return (
-                  <div key={seccion.id} className="mb-8">
-                    <div className="flex items-center justify-between mb-6 cursor-pointer select-none" onClick={() => setOpenSecciones(prev => ({ ...prev, [seccion.id]: !prev[seccion.id] }))}>
+                  <div key={seccion.id} className="mb-6 sm:mb-8">
+                    <div className="flex items-center justify-between mb-4 sm:mb-6 cursor-pointer select-none" onClick={() => setOpenSecciones(prev => ({ ...prev, [seccion.id]: !prev[seccion.id] }))}>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
@@ -477,11 +505,11 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                           className="focus:outline-none"
                           tabIndex={-1}
                         >
-                          <svg className={`w-5 h-5 transition-transform duration-200 ${openSecciones[seccion.id] ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-200 ${openSecciones[seccion.id] ? 'rotate-90' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                           </svg>
                         </button>
-                        <h2 className="text-2xl font-normal text-gray-900">{seccion.titulo}</h2>
+                        <h2 className="text-lg sm:text-2xl font-normal text-gray-900">{seccion.titulo}</h2>
                       </div>
                     </div>
                     {openSecciones[seccion.id] && (
@@ -492,20 +520,20 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                             onClick={() => openContent(item)}
                             className="bg-white rounded-lg border border-gray-200 hover:shadow-md cursor-pointer transition-all duration-200"
                           >
-                            <div className="flex items-center p-4">
-                              <div className="flex-shrink-0 mr-4">
-                                <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                            <div className="flex items-center p-3 sm:p-4">
+                              <div className="flex-shrink-0 mr-3 sm:mr-4">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-full flex items-center justify-center">
                                   {/* Icono según tipo */}
                                   {item.tipo === 'clase' ? (
-                                    <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                     </svg>
                                   ) : item.tipo === 'apunte' ? (
-                                    <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6c-2.28-1.2-4.72-2-7-2v14c2.28 0 4.72.8 7 2m0-14c2.28-1.2 4.72-2 7-2v14c-2.28 0-4.72.8-7 2m0-14v14" />
                                     </svg>
                                   ) : (
-                                    <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
                                   )}
@@ -513,16 +541,19 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                               </div>
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between">
-                                  <div>
-                                    <h3 className="text-sm font-medium text-gray-900 mb-1">
+                                  <div className="min-w-0 flex-1">
+                                    <h3 className="text-sm font-medium text-gray-900 mb-1 truncate sm:truncate-none">
                                       {item.titulo}
                                     </h3>
-                                    <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                    <div className="flex items-center flex-wrap gap-2 sm:space-x-4 sm:gap-0 text-xs text-gray-500">
                                       {item.tipo === 'clase' && item.duracion && (
-                                        <span>{formatSeconds(item.duracion)}</span>
+                                        <span className="bg-gray-100 px-2 py-1 rounded sm:bg-transparent sm:px-0 sm:py-0">{formatSeconds(item.duracion)}</span>
                                       )}
-                                      <span>
+                                      <span className="hidden sm:inline">
                                         Publicado: {item.fecha ? new Date(item.fecha).toLocaleDateString() : item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Sin fecha'}
+                                      </span>
+                                      <span className="sm:hidden">
+                                        {item.fecha ? new Date(item.fecha).toLocaleDateString() : item.created_at ? new Date(item.created_at).toLocaleDateString() : 'Sin fecha'}
                                       </span>
                                     </div>
                                   </div>
@@ -542,7 +573,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                 const sinSeccion = [...contenidos.apuntes, ...contenidos.problemas, ...contenidos.clases].filter(c => !c.seccion_id)
                 if (sinSeccion.length === 0) return null
                 return (
-                  <div className="mb-8">
+                  <div className="mb-6 sm:mb-8">
                     <div className="space-y-2">
                       {sinSeccion.map(item => (
                         <div
@@ -550,20 +581,20 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                           onClick={() => openContent(item)}
                           className="bg-white rounded-lg border border-gray-200 hover:shadow-md cursor-pointer transition-all duration-200"
                         >
-                          <div className="flex items-center p-4">
-                            <div className="flex-shrink-0 mr-4">
-                              <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                          <div className="flex items-center p-3 sm:p-4">
+                            <div className="flex-shrink-0 mr-3 sm:mr-4">
+                              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-full flex items-center justify-center">
                                 {/* Icono según tipo */}
                                 {item.tipo === 'clase' ? (
-                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                   </svg>
                                 ) : item.tipo === 'apunte' ? (
-                                  <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6c-2.28-1.2-4.72-2-7-2v14c2.28 0 4.72.8 7 2m0-14c2.28-1.2 4.72-2 7-2v14c-2.28 0-4.72.8-7 2m0-14v14" />
                                   </svg>
                                 ) : (
-                                  <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                   </svg>
                                 )}
@@ -571,15 +602,16 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between">
-                                <div>
-                                  <h3 className="text-sm font-medium text-gray-900 mb-1">
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="text-sm font-medium text-gray-900 mb-1 truncate sm:truncate-none">
                                     {item.titulo}
                                   </h3>
-                                  <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                  <div className="flex items-center flex-wrap gap-2 sm:space-x-4 sm:gap-0 text-xs text-gray-500">
                                     {item.tipo === 'clase' && item.duracion && (
-                                      <span>{formatSeconds(item.duracion)}</span>
+                                      <span className="bg-gray-100 px-2 py-1 rounded sm:bg-transparent sm:px-0 sm:py-0">{formatSeconds(item.duracion)}</span>
                                     )}
-                                    <span>Publicado: hoy</span>
+                                    <span className="hidden sm:inline">Publicado: hoy</span>
+                                    <span className="sm:hidden">hoy</span>
                                   </div>
                                 </div>
                               </div>
@@ -594,13 +626,13 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
 
               {/* Problemas Section */}
               {contenidos.problemas.length > 0 && (
-                <div className="mb-12">
-                  <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-2xl font-normal text-gray-900">
+                <div className="mb-8 sm:mb-12">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <h2 className="text-lg sm:text-2xl font-normal text-gray-900">
                       PROBLEMAS
                     </h2>
                     <button className="text-gray-400 hover:text-gray-600">
-                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                      <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 20 20">
                         <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
                       </svg>
                     </button>
@@ -613,26 +645,27 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                         onClick={() => openContent(problema)}
                         className="bg-white rounded-lg border border-gray-200 hover:shadow-md cursor-pointer transition-all duration-200"
                       >
-                        <div className="flex items-center p-4">
-                          <div className="flex-shrink-0 mr-4">
-                            <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-                              <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div className="flex items-center p-3 sm:p-4">
+                          <div className="flex-shrink-0 mr-3 sm:mr-4">
+                            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                               </svg>
                             </div>
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between">
-                              <div>
-                                <h3 className="text-sm font-medium text-gray-900 mb-1">
+                              <div className="min-w-0 flex-1">
+                                <h3 className="text-sm font-medium text-gray-900 mb-1 truncate sm:truncate-none">
                                   {problema.titulo}
                                 </h3>
-                                <div className="flex items-center space-x-4 text-xs text-gray-500">
-                                  <span>Publicado: hoy</span>
+                                <div className="flex items-center flex-wrap gap-2 sm:space-x-4 sm:gap-0 text-xs text-gray-500">
+                                  <span className="hidden sm:inline">Publicado: hoy</span>
+                                  <span className="sm:hidden">hoy</span>
                                 </div>
                               </div>
-                              <button className="text-gray-400 hover:text-gray-600 ml-4">
-                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                              <button className="text-gray-400 hover:text-gray-600 ml-2 sm:ml-4 flex-shrink-0">
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 20 20">
                                   <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z"/>
                                 </svg>
                               </button>
@@ -649,11 +682,11 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
 
               {/* Mensaje cuando no hay contenido */}
               {contenidos.apuntes.length === 0 && contenidos.problemas.length === 0 && clasesDisponibles.length === 0 && (
-                <div className="text-center py-16">
-                  <div className="bg-white rounded-lg border border-gray-200 p-12 max-w-md mx-auto">
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No hay contenido disponible</h3>
-                    <p className="text-gray-500">Aún no se ha añadido contenido a este curso.</p>
-                    <p className="text-sm text-gray-400 mt-2">El profesor estará subiendo material próximamente.</p>
+                <div className="text-center py-12 sm:py-16">
+                  <div className="bg-white rounded-lg border border-gray-200 p-6 sm:p-12 max-w-md mx-auto">
+                    <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No hay contenido disponible</h3>
+                    <p className="text-sm sm:text-base text-gray-500">Aún no se ha añadido contenido a este curso.</p>
+                    <p className="text-xs sm:text-sm text-gray-400 mt-2">El profesor estará subiendo material próximamente.</p>
                   </div>
                 </div>
               )}

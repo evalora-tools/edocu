@@ -22,6 +22,7 @@ export default function AlumnoPage() {
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Manejar hidratación del cliente
 
@@ -139,30 +140,37 @@ export default function AlumnoPage() {
   <div className="min-h-screen bg-gradient-to-br from-sky-100 via-blue-50 to-cyan-25 flex flex-col">
       {/* Navigation Header - Fixed */}
   <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30 fixed top-0 left-0 right-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center">
               <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-3"
+                onClick={() => {
+                  const isMobile = window.innerWidth < 768;
+                  if (isMobile) {
+                    setMobileMenuOpen(!mobileMenuOpen);
+                  } else {
+                    setSidebarCollapsed(!sidebarCollapsed);
+                  }
+                }}
+                className="p-2 rounded-md text-blue-600 hover:text-blue-800 hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2 sm:mr-3"
               >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="h-4 w-4 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center shadow">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <div className="flex-shrink-0 hidden sm:block">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-600 rounded flex items-center justify-center shadow">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
                   </svg>
                 </div>
               </div>
-              <div className="ml-4">
-                <h1 className="text-xl font-semibold text-blue-900 drop-shadow-sm">{academia?.nombre || 'Classroom'}</h1>
+              <div className="ml-2 sm:ml-4 hidden sm:block">
+                <h1 className="text-lg sm:text-xl font-semibold text-blue-900 drop-shadow-sm">{academia?.nombre || 'Classroom'}</h1>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-blue-900 font-medium">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="text-xs sm:text-sm text-blue-900 font-medium hidden sm:inline">
                 Hola, {profile?.nombre || 'Alumno'}
               </span>
               <button
@@ -172,18 +180,32 @@ export default function AlumnoPage() {
                     router.push('/login');
                   }
                 }}
-                className="text-sm text-blue-700 hover:text-blue-900 font-semibold"
+                className="text-xs sm:text-sm text-blue-700 hover:text-blue-900 font-semibold"
               >
-                Cerrar sesión
+                <span className="hidden sm:inline">Cerrar sesión</span>
+                <span className="sm:hidden">Salir</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
+      <div className="flex pt-14 sm:pt-16"> {/* Added padding-top to account for fixed header */}
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
         {/* Sidebar - Fixed */}
-        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out`}>
+        <div className={`
+          ${sidebarCollapsed ? 'w-16' : 'w-64'} 
+          fixed left-0 top-14 sm:top-16 bottom-0 backdrop-blur-md bg-white/95 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out z-30
+          md:block
+          ${mobileMenuOpen ? 'block' : 'hidden md:block'}
+        `}>
           <nav className="mt-5 px-2">
             <div className="space-y-1">
               <div className="bg-gradient-to-r from-blue-100 to-blue-50 text-blue-900 group flex items-center px-2 py-2 text-sm font-semibold rounded-lg shadow-sm">
@@ -205,7 +227,10 @@ export default function AlumnoPage() {
                   {cursos.map((curso) => (
                     <div 
                       key={curso.id} 
-                      onClick={() => router.push(`/alumno/asignatura/${curso.id}`)}
+                      onClick={() => {
+                        router.push(`/alumno/asignatura/${curso.id}`);
+                        setMobileMenuOpen(false);
+                      }}
                       className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
                       title={sidebarCollapsed ? curso.nombre : ''}
                     >
@@ -224,11 +249,11 @@ export default function AlumnoPage() {
         </div>
 
         {/* Main Content - Scrollable Area */}
-        <div className={`flex-1 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} overflow-y-auto h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}>
-          <div className="max-w-6xl mx-auto p-8">
+        <div className={`flex-1 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} overflow-y-auto h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}>
+          <div className="max-w-6xl mx-auto p-4 sm:p-8">
             {cursos.length === 0 ? (
-              <div className="text-center py-12">
-                <div className="mx-auto h-24 w-24 text-blue-300">
+              <div className="text-center py-8 sm:py-12">
+                <div className="mx-auto h-16 w-16 sm:h-24 sm:w-24 text-blue-300">
                   <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                   </svg>
@@ -237,7 +262,7 @@ export default function AlumnoPage() {
                 <p className="mt-1 text-sm text-blue-700">Aún no tienes cursos asignados</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:gap-8 sm:grid-cols-2 lg:grid-cols-3">
                 {cursos.map((curso) => (
                   <div
                     key={curso.id}
@@ -245,17 +270,17 @@ export default function AlumnoPage() {
                     className="rounded-2xl shadow-xl overflow-hidden cursor-pointer bg-gradient-to-br from-blue-600 to-blue-400 hover:scale-[1.03] transition-transform duration-200"
                   >
                     {/* Card Header */}
-                    <div className="h-48 flex flex-col justify-between p-7">
+                    <div className="h-40 sm:h-48 flex flex-col justify-between p-4 sm:p-7">
                       <div>
-                        <h3 className="text-white font-bold text-2xl leading-tight line-clamp-2">
+                        <h3 className="text-white font-bold text-lg sm:text-2xl leading-tight line-clamp-2">
                           {curso.nombre}
                         </h3>
-                        <p className="text-blue-100 text-base mt-1">
+                        <p className="text-blue-100 text-sm sm:text-base mt-1">
                           {curso.universidad}
                         </p>
                       </div>
-                      <div className="flex items-center justify-between mt-4">
-                        <span className="bg-white text-blue-700 font-semibold rounded-full px-3 py-1 text-xs shadow">
+                      <div className="flex items-center justify-between mt-3 sm:mt-4">
+                        <span className="bg-white text-blue-700 font-semibold rounded-full px-2 sm:px-3 py-1 text-xs shadow">
                           {(() => {
                             const map: Record<string, string> = {
                               'primero': '1º Curso',
@@ -270,8 +295,8 @@ export default function AlumnoPage() {
                             return map[curso.curso_academico?.toLowerCase()] || curso.curso_academico;
                           })()}
                         </span>
-                        <span className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow">
-                          <span className="text-blue-400 font-bold text-lg">
+                        <span className="w-7 h-7 sm:w-8 sm:h-8 bg-white rounded-full flex items-center justify-center shadow">
+                          <span className="text-blue-400 font-bold text-base sm:text-lg">
                             {curso.nombre.charAt(0).toUpperCase()}
                           </span>
                         </span>

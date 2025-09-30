@@ -37,6 +37,7 @@ export default function ProfesorAlumnosPage() {
   const [academia, setAcademia] = useState<Academia | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   // Filtrar alumnos basado en búsqueda
   const alumnosFiltrados = alumnos.filter(alumno => {
@@ -243,39 +244,46 @@ export default function ProfesorAlumnosPage() {
 
       {/* Navigation Header - Fixed */}
       <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30 fixed top-0 left-0 right-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center">
               <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={() => {
+                  const isMobile = window.innerWidth < 768;
+                  if (isMobile) {
+                    setMobileMenuOpen(!mobileMenuOpen);
+                  } else {
+                    setSidebarCollapsed(!sidebarCollapsed);
+                  }
+                }}
+                className="mr-2 sm:mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 title={sidebarCollapsed ? "Expandir sidebar" : "Contraer sidebar"}
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
               <button
                 onClick={() => router.push('/profesor')}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="mr-2 sm:mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <div className="flex-shrink-0 hidden sm:block">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-600 rounded flex items-center justify-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
                   </svg>
                 </div>
               </div>
-              <div className="ml-4">
-                <h1 className="text-xl font-medium text-gray-900">{academia?.nombre || 'Academia'}</h1>
+              <div className="ml-2 sm:ml-4 hidden sm:block">
+                <h1 className="text-lg sm:text-xl font-medium text-gray-900">{academia?.nombre || 'Academia'}</h1>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-blue-900 font-medium">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="text-xs sm:text-sm text-blue-900 font-medium hidden sm:inline">
                 Mis Alumnos
               </span>
               <button
@@ -285,18 +293,32 @@ export default function ProfesorAlumnosPage() {
                     router.push('/login');
                   }
                 }}
-                className="text-sm text-blue-700 hover:text-blue-900 font-semibold"
+                className="text-xs sm:text-sm text-blue-700 hover:text-blue-900 font-semibold"
               >
-                Cerrar sesión
+                <span className="hidden sm:inline">Cerrar sesión</span>
+                <span className="sm:hidden">Salir</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
+      <div className="flex pt-14 sm:pt-16"> {/* Added padding-top to account for fixed header */}
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
         {/* Sidebar - Fixed */}
-        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out`}>
+        <div className={`
+          ${sidebarCollapsed ? 'w-16' : 'w-64'} 
+          fixed left-0 top-14 sm:top-16 bottom-0 backdrop-blur-md bg-white/95 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out z-30
+          md:block
+          ${mobileMenuOpen ? 'block' : 'hidden md:block'}
+        `}>
           <nav className="mt-5 px-2">
             <div className="space-y-1">
               <div 
@@ -361,29 +383,29 @@ export default function ProfesorAlumnosPage() {
         </div>
 
         {/* Main Content - Scrollable Area */}
-        <div className={`flex-1 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} overflow-y-auto h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}>
-          <div className="max-w-6xl mx-auto p-8">
+        <div className={`flex-1 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} overflow-y-auto h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}>
+          <div className="max-w-6xl mx-auto p-4 sm:p-8">
             {/* Header Section */}
-            <div className="mb-8">
+            <div className="mb-6 sm:mb-8">
               {/* Removed header content */}
             </div>
             
             {/* Search Section */}
-            <div className="mb-6">
+            <div className="mb-4 sm:mb-6">
               <div className="relative max-w-sm">
                 <input
                   type="text"
                   placeholder="Buscar..."
                   value={busquedaTexto}
                   onChange={(e) => setBusquedaTexto(e.target.value)}
-                  className="block w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-colors"
+                  className="block w-full px-3 sm:px-4 py-2 sm:py-2.5 border border-gray-200 rounded-lg bg-white text-sm placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400 transition-colors"
                 />
               </div>
             </div>
 
             {/* Students List */}
             {alumnosFiltrados.length === 0 ? (
-              <div className="bg-gray-50 rounded-lg p-12 text-center">
+              <div className="bg-gray-50 rounded-lg p-6 sm:p-12 text-center">
                 <p className="text-gray-500 mb-4">
                   {busquedaTexto ? 'No se encontraron resultados' : 'No hay estudiantes'}
                 </p>
@@ -398,8 +420,8 @@ export default function ProfesorAlumnosPage() {
               </div>
             ) : (
               <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-                {/* Table Header */}
-                <div className="bg-gray-50 px-6 py-3 border-b border-gray-200">
+                {/* Table Header - Hidden on mobile */}
+                <div className="hidden sm:block bg-gray-50 px-6 py-3 border-b border-gray-200">
                   <div className="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="col-span-4">Estudiante</div>
                     <div className="col-span-5">Cursos</div>
@@ -408,42 +430,40 @@ export default function ProfesorAlumnosPage() {
                   </div>
                 </div>
                 
-                {/* Table Body */}
+                {/* Table Body - Responsive cards */}
                 <div className="divide-y divide-gray-100">
                   {alumnosFiltrados.map((alumno, index) => (
                     <div
                       key={alumno.id}
-                      className="px-6 py-4 hover:bg-gray-50 transition-colors"
+                      className="p-4 sm:px-6 sm:py-4 hover:bg-gray-50 transition-colors"
                     >
-                      <div className="grid grid-cols-12 gap-4 items-center">
-                        <div className="col-span-4">
-                          <div>
-                            <p className="text-sm font-medium text-gray-900">
-                              {alumno.nombre ? resaltarTexto(alumno.nombre, busquedaTexto) : 'Sin nombre'}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              {resaltarTexto(alumno.email, busquedaTexto)}
-                            </p>
-                          </div>
+                      {/* Mobile Layout */}
+                      <div className="sm:hidden space-y-3">
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {alumno.nombre ? resaltarTexto(alumno.nombre, busquedaTexto) : 'Sin nombre'}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            {resaltarTexto(alumno.email, busquedaTexto)}
+                          </p>
                         </div>
-                        <div className="col-span-5">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Cursos:</p>
                           <div className="flex flex-wrap gap-1">
                             {alumno.cursos.map((curso, cursoIndex) => (
                               <span
                                 key={curso.id}
-                                className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
                               >
                                 {curso.nombre}
                               </span>
                             ))}
                           </div>
                         </div>
-                        <div className="col-span-2">
-                          <p className="text-sm text-gray-500">
-                            {new Date(alumno.created_at).toLocaleDateString('es-ES')}
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-gray-500">
+                            Matriculación: {new Date(alumno.created_at).toLocaleDateString('es-ES')}
                           </p>
-                        </div>
-                        <div className="col-span-1 text-right">
                           <button
                             onClick={() => window.open(`mailto:${alumno.email}?subject=Consulta sobre cursos`, '_blank')}
                             className="text-gray-400 hover:text-blue-600 transition-colors p-1"
@@ -455,12 +475,56 @@ export default function ProfesorAlumnosPage() {
                           </button>
                         </div>
                       </div>
+                      
+                      {/* Desktop Layout */}
+                      <div className="hidden sm:block">
+                        <div className="grid grid-cols-12 gap-4 items-center">
+                          <div className="col-span-4">
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {alumno.nombre ? resaltarTexto(alumno.nombre, busquedaTexto) : 'Sin nombre'}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                {resaltarTexto(alumno.email, busquedaTexto)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="col-span-5">
+                            <div className="flex flex-wrap gap-1">
+                              {alumno.cursos.map((curso, cursoIndex) => (
+                                <span
+                                  key={curso.id}
+                                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                                >
+                                  {curso.nombre}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="col-span-2">
+                            <p className="text-sm text-gray-500">
+                              {new Date(alumno.created_at).toLocaleDateString('es-ES')}
+                            </p>
+                          </div>
+                          <div className="col-span-1 text-right">
+                            <button
+                              onClick={() => window.open(`mailto:${alumno.email}?subject=Consulta sobre cursos`, '_blank')}
+                              className="text-gray-400 hover:text-blue-600 transition-colors p-1"
+                              title="Enviar email"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
                 
                 {/* Footer with count */}
-                <div className="bg-gray-50 px-6 py-3 border-t border-gray-200">
+                <div className="bg-gray-50 px-4 sm:px-6 py-3 border-t border-gray-200">
                   <p className="text-xs text-gray-500">
                     Mostrando {alumnosFiltrados.length} de {alumnos.length} estudiantes
                   </p>

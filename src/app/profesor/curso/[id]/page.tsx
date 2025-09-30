@@ -55,6 +55,7 @@ export default function ProfesorCursoPage() {
   const [contenidos, setContenidos] = useState<Contenido[]>([])
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [uploadModal, setUploadModal] = useState(false)
   const [uploadType, setUploadType] = useState<'apunte' | 'problema' | 'clase'>('apunte')
   const [uploadForm, setUploadForm] = useState({
@@ -672,61 +673,84 @@ export default function ProfesorCursoPage() {
       )}
       {/* Navigation Header - Fixed */}
       <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30 fixed top-0 left-0 right-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center">
               <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={() => {
+                  const isMobile = window.innerWidth < 768;
+                  if (isMobile) {
+                    setMobileMenuOpen(!mobileMenuOpen);
+                  } else {
+                    setSidebarCollapsed(!sidebarCollapsed);
+                  }
+                }}
+                className="mr-2 sm:mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 title={sidebarCollapsed ? "Expandir sidebar" : "Contraer sidebar"}
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
               <button
                 onClick={() => router.push('/profesor')}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="mr-2 sm:mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center">
-                  <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+              <div className="flex-shrink-0 hidden sm:block">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-green-600 rounded flex items-center justify-center">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3z"/>
                   </svg>
                 </div>
               </div>
-              <div className="ml-4">
-                <h1 className="text-xl font-medium text-gray-900">{academia?.nombre || 'Academia'}</h1>
+              <div className="ml-2 sm:ml-4 hidden sm:block">
+                <h1 className="text-lg sm:text-xl font-medium text-gray-900">{academia?.nombre || 'Academia'}</h1>
               </div>
             </div>
             <div className="flex items-center">
-              <div className="mr-4">
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white font-medium text-sm">
+              <div className="mr-2 sm:mr-4">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white font-medium text-xs sm:text-sm">
                     {curso.nombre.charAt(0).toUpperCase()}
                   </span>
                 </div>
               </div>
-              <div>
-                <h2 className="text-lg font-medium text-gray-900">{curso.nombre}</h2>
-                <p className="text-sm text-gray-500">{curso.universidad}</p>
+              <div className="min-w-0">
+                <h2 className="text-sm sm:text-lg font-medium text-gray-900 truncate">{curso.nombre}</h2>
+                <p className="text-xs sm:text-sm text-gray-500 truncate hidden sm:block">{curso.universidad}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
+      <div className="flex pt-14 sm:pt-16"> {/* Added padding-top to account for fixed header */}
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
         {/* Sidebar - Fixed */}
-        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out`}>
+        <div className={`
+          ${sidebarCollapsed ? 'w-16' : 'w-64'} 
+          fixed left-0 top-14 sm:top-16 bottom-0 backdrop-blur-md bg-white/95 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out z-30
+          md:block
+          ${mobileMenuOpen ? 'block' : 'hidden md:block'}
+        `}>
           <nav className="mt-5 px-2">
             <div className="space-y-1">
               <div 
-                onClick={() => router.push('/profesor')}
+                onClick={() => {
+                  router.push('/profesor');
+                  setMobileMenuOpen(false);
+                }}
                 className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
                 title={sidebarCollapsed ? "Inicio" : ""}
               >
@@ -739,7 +763,10 @@ export default function ProfesorCursoPage() {
               </div>
 
               <div
-                onClick={() => router.push('/profesor/alumnos')}
+                onClick={() => {
+                  router.push('/profesor/alumnos');
+                  setMobileMenuOpen(false);
+                }}
                 className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
                 title={sidebarCollapsed ? "Mis alumnos" : ""}
               >
@@ -752,7 +779,10 @@ export default function ProfesorCursoPage() {
               </div>
 
               <div 
-                onClick={() => router.push('/profesor/analytics')}
+                onClick={() => {
+                  router.push('/profesor/analytics');
+                  setMobileMenuOpen(false);
+                }}
                 className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
                 title={sidebarCollapsed ? "Estadísticas" : ""}
               >
@@ -774,7 +804,10 @@ export default function ProfesorCursoPage() {
                   {cursos.map((cursoItem) => (
                     <div 
                       key={cursoItem.id} 
-                      onClick={() => router.push(`/profesor/curso/${cursoItem.id}`)}
+                      onClick={() => {
+                        router.push(`/profesor/curso/${cursoItem.id}`);
+                        setMobileMenuOpen(false);
+                      }}
                       className={`group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150
                         ${cursoItem.id === cursoId 
                           ? 'bg-blue-50 text-blue-700' 
@@ -797,7 +830,7 @@ export default function ProfesorCursoPage() {
         </div>
 
         {/* Main Content - Scrollable Area */}
-        <div className={`flex-1 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} overflow-y-auto h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}>
+        <div className={`flex-1 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} overflow-y-auto h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}>
           <div className="max-w-6xl mx-auto p-6">
             {/* Course Header */}
             <div className="h-52 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg mb-12 relative overflow-hidden">

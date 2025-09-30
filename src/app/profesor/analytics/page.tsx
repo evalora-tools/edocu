@@ -61,6 +61,7 @@ export default function ProfesorAnalyticsPage() {
   const [profesorId, setProfesorId] = useState<string | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   
   // Estados para analytics
   const [summary, setSummary] = useState<AnalyticsSummary | null>(null)
@@ -227,39 +228,46 @@ export default function ProfesorAnalyticsPage() {
 
       {/* Navigation Header - Fixed */}
       <div className="backdrop-blur-md bg-white/80 shadow-md border-b border-white/30 fixed top-0 left-0 right-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center">
               <button
-                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                onClick={() => {
+                  const isMobile = window.innerWidth < 768;
+                  if (isMobile) {
+                    setMobileMenuOpen(!mobileMenuOpen);
+                  } else {
+                    setSidebarCollapsed(!sidebarCollapsed);
+                  }
+                }}
+                className="mr-2 sm:mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
                 title={sidebarCollapsed ? "Expandir sidebar" : "Contraer sidebar"}
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
               </button>
               <button
                 onClick={() => router.push('/profesor')}
-                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="mr-2 sm:mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
-                  <span className="text-white font-medium text-sm">
+              <div className="flex-shrink-0 hidden sm:block">
+                <div className="w-7 h-7 sm:w-8 sm:h-8 bg-blue-600 rounded flex items-center justify-center">
+                  <span className="text-white font-medium text-xs sm:text-sm">
                     A
                   </span>
                 </div>
               </div>
-              <div className="ml-4">
-                <h1 className="text-xl font-medium text-gray-900">Análisis de Visualización</h1>
+              <div className="ml-2 sm:ml-4 hidden sm:block">
+                <h1 className="text-lg sm:text-xl font-medium text-gray-900">Análisis de Visualización</h1>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-blue-900 font-medium">
+            <div className="flex items-center space-x-2 sm:space-x-4">
+              <span className="text-xs sm:text-sm text-blue-900 font-medium hidden sm:inline">
                 Estadísticas
               </span>
               <button
@@ -269,18 +277,32 @@ export default function ProfesorAnalyticsPage() {
                     router.push('/login');
                   }
                 }}
-                className="text-sm text-blue-700 hover:text-blue-900 font-semibold"
+                className="text-xs sm:text-sm text-blue-700 hover:text-blue-900 font-semibold"
               >
-                Cerrar sesión
+                <span className="hidden sm:inline">Cerrar sesión</span>
+                <span className="sm:hidden">Salir</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
+      <div className="flex pt-14 sm:pt-16">
+        {/* Mobile Menu Overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
         {/* Sidebar - Fixed */}
-        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out`}>
+        <div className={`
+          ${sidebarCollapsed ? 'w-16' : 'w-64'} 
+          fixed left-0 top-14 sm:top-16 bottom-0 backdrop-blur-md bg-white/95 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out z-30
+          md:block
+          ${mobileMenuOpen ? 'block' : 'hidden md:block'}
+        `}>
           <nav className="mt-5 px-2">
             <div className="space-y-1">
               <div 
@@ -345,8 +367,8 @@ export default function ProfesorAnalyticsPage() {
         </div>
 
         {/* Main Content - Scrollable Area */}
-        <div className={`flex-1 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} overflow-y-auto h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}>
-          <div className="max-w-6xl mx-auto p-8">
+        <div className={`flex-1 ${sidebarCollapsed ? 'md:ml-16' : 'md:ml-64'} overflow-y-auto h-[calc(100vh-3.5rem)] sm:h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}>
+          <div className="max-w-6xl mx-auto p-4 sm:p-8">
         {/* Filtro por curso */}
         <div className="mb-8">
           <label htmlFor="curso-select" className="block text-sm font-medium text-gray-700 mb-2">
@@ -398,9 +420,70 @@ export default function ProfesorAnalyticsPage() {
             )}
 
             {/* Estadísticas por alumno */}
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Estadísticas por Alumno</h2>
-              <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="mb-6 sm:mb-8">
+              <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-4">Estadísticas por Alumno</h2>
+              
+              {/* Vista móvil - Cards */}
+              <div className="block lg:hidden">
+                <div className="space-y-4">
+                  {studentStats.map((student) => (
+                    <div key={student.userId} className="bg-white p-4 rounded-lg shadow border border-gray-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-gray-900">{student.userName}</h3>
+                        <button
+                          onClick={() => toggleStudentExpand(student.userId)}
+                          className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                        >
+                          {expandedStudents.has(student.userId) ? 'Ocultar' : 'Ver más'}
+                        </button>
+                      </div>
+                      <div className="text-sm text-gray-600 mb-3">{student.userEmail}</div>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-gray-500">Sesiones</div>
+                          <div className="font-semibold">{student.totalSessions}</div>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-gray-500">Tiempo Total</div>
+                          <div className="font-semibold">{formatTime(student.totalWatchTime)}</div>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-gray-500">Clases Vistas</div>
+                          <div className="font-semibold">{student.uniqueClassesCount}</div>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-gray-500">Últ. Actividad</div>
+                          <div className="font-semibold">{student.lastActivity ? formatDate(student.lastActivity) : 'N/A'}</div>
+                        </div>
+                      </div>
+                      {expandedStudents.has(student.userId) && student.clasesDetalle && student.clasesDetalle.length > 0 && (
+                        <div className="mt-4 pt-4 border-t border-gray-200">
+                          <h4 className="font-medium text-gray-900 mb-2">Detalle de clases:</h4>
+                          <div className="space-y-2">
+                            {student.clasesDetalle.map((clase) => (
+                              <div key={clase.contentId} className="bg-blue-50 p-3 rounded-lg">
+                                <div className="font-medium text-sm">{clase.contentTitle}</div>
+                                <div className="text-xs text-gray-600 mt-1">
+                                  {clase.sessions} sesiones • {formatTime(clase.watchTime)}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {studentStats.length === 0 && (
+                    <div className="bg-white p-8 rounded-lg shadow border border-gray-200 text-center">
+                      <div className="text-gray-500 text-lg mb-2">No hay datos de estudiantes</div>
+                      <p className="text-gray-400">Aún no hay actividad registrada de los estudiantes.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Vista desktop - Tabla */}
+              <div className="hidden lg:block bg-white shadow rounded-lg overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
@@ -514,8 +597,45 @@ export default function ProfesorAnalyticsPage() {
 
             {/* Estadísticas por clase */}
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Estadísticas por Clase</h2>
-              <div className="bg-white shadow rounded-lg overflow-hidden">
+              <h2 className="text-lg sm:text-2xl font-bold text-gray-900 mb-4">Estadísticas por Clase</h2>
+              
+              {/* Vista móvil - Cards */}
+              <div className="block lg:hidden">
+                <div className="space-y-4">
+                  {classStats.map((classItem) => (
+                    <div key={classItem.contentId} className="bg-white p-4 rounded-lg shadow border border-gray-200">
+                      <h3 className="font-semibold text-gray-900 mb-3">{classItem.contentTitle}</h3>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-gray-500">Visualizaciones</div>
+                          <div className="font-semibold">{classItem.totalViews}</div>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-gray-500">Estudiantes</div>
+                          <div className="font-semibold">{classItem.uniqueStudents}</div>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-gray-500">Tiempo Total</div>
+                          <div className="font-semibold">{formatTime(classItem.totalWatchTime)}</div>
+                        </div>
+                        <div className="bg-gray-50 p-2 rounded">
+                          <div className="text-gray-500">Promedio</div>
+                          <div className="font-semibold">{formatTime(classItem.averageWatchTime)}</div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {classStats.length === 0 && (
+                    <div className="bg-white p-8 rounded-lg shadow border border-gray-200 text-center">
+                      <div className="text-gray-500 text-lg mb-2">No hay datos de clases</div>
+                      <p className="text-gray-400">Aún no hay actividad registrada en las clases.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Vista desktop - Tabla */}
+              <div className="hidden lg:block bg-white shadow rounded-lg overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
