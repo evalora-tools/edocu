@@ -25,6 +25,7 @@ export default function ProfesorPage() {
   const [cursos, setCursos] = useState<Curso[]>([])
   const [academia, setAcademia] = useState<Academia | null>(null)
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   useEffect(() => {
     const checkProfesor = async () => {
@@ -157,6 +158,15 @@ export default function ProfesorPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
+              <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                title={sidebarCollapsed ? "Expandir sidebar" : "Contraer sidebar"}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
               <div className="flex-shrink-0">
                 <div className="w-8 h-8 bg-green-600 rounded flex items-center justify-center shadow">
                   <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
@@ -190,57 +200,62 @@ export default function ProfesorPage() {
 
       <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
         {/* Sidebar - Fixed */}
-        <div className="w-64 fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto">
+        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out`}>
           <nav className="mt-5 px-2">
             <div className="space-y-1">
               <div className="bg-gradient-to-r from-blue-100 to-blue-50 text-blue-900 group flex items-center px-2 py-2 text-sm font-semibold rounded-lg shadow-sm">
-                <span className="w-6 h-6 bg-blue-400 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
+                <span className="w-6 h-6 bg-blue-400 rounded text-blue-900 text-xs flex items-center justify-center mr-3 flex-shrink-0">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
                 </span>
-                Inicio
+                {!sidebarCollapsed && <span>Inicio</span>}
               </div>
 
               <div 
                 onClick={() => router.push('/profesor/alumnos')}
                 className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
+                title={sidebarCollapsed ? "Alumnos" : ""}
               >
-                <span className="w-6 h-6 bg-blue-200 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
+                <span className="w-6 h-6 bg-blue-200 rounded text-blue-900 text-xs flex items-center justify-center mr-3 flex-shrink-0">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 6.292 4 4 0 000-6.292zM15 21H3v-1a6 6 0 0112 0v1z" />
                   </svg>
                 </span>
-                Mis alumnos
+                {!sidebarCollapsed && <span>Mis alumnos</span>}
               </div>
 
               <div 
                 onClick={() => router.push('/profesor/analytics')}
                 className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
+                title={sidebarCollapsed ? "Estadísticas" : ""}
               >
-                <span className="w-6 h-6 bg-blue-200 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
+                <span className="w-6 h-6 bg-blue-200 rounded text-blue-900 text-xs flex items-center justify-center mr-3 flex-shrink-0">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                   </svg>
                 </span>
-                Estadísticas
+                {!sidebarCollapsed && <span>Estadísticas</span>}
               </div>
 
               <div className="mt-8">
-                <h3 className="px-3 text-xs font-semibold text-blue-700 uppercase tracking-wider my-3">
-                  Mis Cursos
-                </h3>
+                {!sidebarCollapsed && (
+                  <h3 className="px-3 text-xs font-semibold text-blue-700 uppercase tracking-wider my-3">
+                    Mis Cursos
+                  </h3>
+                )}
                 <div className="mt-2 space-y-1">
                   {cursos.map((curso) => (
                     <div 
                       key={curso.id} 
                       onClick={() => router.push(`/profesor/curso/${curso.id}`)}
                       className="group flex items-center px-2 py-2 text-sm font-medium rounded-lg cursor-pointer transition-all duration-150 bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm"
+                      title={sidebarCollapsed ? curso.nombre : ""}
                     >
-                      <span className="w-6 h-6 bg-blue-200 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
+                      <span className="w-6 h-6 bg-blue-200 rounded text-blue-900 text-xs flex items-center justify-center mr-3 flex-shrink-0">
                         {curso.nombre.charAt(0).toUpperCase()}
                       </span>
-                      <span className="truncate">{curso.nombre}</span>
+                      {!sidebarCollapsed && <span className="truncate">{curso.nombre}</span>}
                     </div>
                   ))}
                 </div>
@@ -250,7 +265,7 @@ export default function ProfesorPage() {
         </div>
 
         {/* Main Content - Scrollable Area */}
-        <div className="flex-1 ml-64 overflow-y-auto h-[calc(100vh-4rem)]">
+        <div className={`flex-1 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} overflow-y-auto h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}>
           <div className="max-w-6xl mx-auto p-8">
             {cursos.length === 0 ? (
               <div className="text-center py-12">

@@ -21,7 +21,6 @@ export default function FilePreviewer({ isOpen, onClose, fileUrl, fileName, tech
       
       // Timeout de 10 segundos para cargas lentas
       const timer = setTimeout(() => {
-        console.log('Timeout alcanzado, mostrando fallback');
         setIsLoading(false);
         setShowPreview(false);
       }, 10000);
@@ -38,7 +37,6 @@ export default function FilePreviewer({ isOpen, onClose, fileUrl, fileName, tech
 
   // Función para cancelar el timeout cuando se carga exitosamente
   const handleSuccessfulLoad = () => {
-    console.log('Archivo cargado exitosamente, cancelando timeout');
     if (timeoutId) {
       clearTimeout(timeoutId);
       setTimeoutId(null);
@@ -48,7 +46,6 @@ export default function FilePreviewer({ isOpen, onClose, fileUrl, fileName, tech
 
   // Función para manejar errores de carga
   const handleLoadError = (type: string) => {
-    console.log(`Error cargando ${type}, usando fallback`);
     if (timeoutId) {
       clearTimeout(timeoutId);
       setTimeoutId(null);
@@ -66,17 +63,13 @@ export default function FilePreviewer({ isOpen, onClose, fileUrl, fileName, tech
     
     // Intentar detectar por nombre de archivo
     let extension = nameToCheck.split('.').pop()?.toLowerCase();
-    console.log('Archivo:', nameToCheck, 'Extensión del nombre:', extension);
     
     // Si no hay extensión en el nombre, intentar detectar por URL
     if (!extension || extension === nameToCheck.toLowerCase()) {
       const urlParts = fileUrl.split('/');
       const fileNameFromUrl = urlParts[urlParts.length - 1];
       extension = fileNameFromUrl.split('.').pop()?.toLowerCase().split('?')[0]; // Quitar parámetros de query
-      console.log('URL:', fileUrl, 'Archivo de URL:', fileNameFromUrl, 'Extensión de URL:', extension);
     }
-    
-    console.log('Extensión final usada:', extension);
     
     if (extension === 'pdf') {
       return 'pdf';
@@ -84,7 +77,6 @@ export default function FilePreviewer({ isOpen, onClose, fileUrl, fileName, tech
       return 'image';
     } else {
       // Si aún no podemos detectar, pero el contenido es tipo 'apunte' o 'problema', asumir PDF
-      console.log('No se pudo detectar extensión, tipo de contenido desconocido');
       return 'other';
     }
   };
@@ -151,7 +143,6 @@ export default function FilePreviewer({ isOpen, onClose, fileUrl, fileName, tech
       );
     } else {
       // Para otros tipos de archivo, mostrar directamente la opción de abrir
-      console.log('Tipo de archivo no soportado para previsualización:', type);
       if (timeoutId) {
         clearTimeout(timeoutId);
         setTimeoutId(null);

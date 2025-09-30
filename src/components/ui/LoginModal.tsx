@@ -29,7 +29,6 @@ export default function LoginModal({
 
     try {
       await signIn(email.trim(), password)
-      console.log('✅ Login exitoso')
       setEmail('')
       setPassword('')
       onLoginSuccess()

@@ -4,18 +4,13 @@ import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function POST(request: Request) {
-  console.log('1. Iniciando creación de estudiante')
-  
   try {
     const cookieStore = cookies()
     const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
     const { email, password, nombre, cursos_ids, academia_id } = await request.json()
-    
-    console.log('2. Datos recibidos:', { email, nombre, cursos_ids, academia_id })
 
     // Verificar sesión
     const { data: { session } } = await supabase.auth.getSession()
-    console.log('3. Sesión:', session ? 'Existe' : 'No existe')
 
     if (!session) {
       return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
@@ -27,8 +22,6 @@ export async function POST(request: Request) {
       .select('role, academia_id')
       .eq('id', session.user.id)
       .single()
-
-    console.log('4. Perfil:', profile)
 
     if (!profile || !['admin', 'gestor'].includes(profile.role)) {
       return NextResponse.json({ error: 'No autorizado - requiere rol admin o gestor' }, { status: 403 })
@@ -57,8 +50,6 @@ export async function POST(request: Request) {
       }
     })
 
-    console.log('5. Resultado creación usuario:', user ? 'Éxito' : 'Fallo', signUpError || '')
-
     if (signUpError || !user) {
       throw signUpError || new Error('No se pudo crear el usuario')
     }
@@ -78,8 +69,6 @@ export async function POST(request: Request) {
         cursos_adquiridos: cursos_ids || []
       })
 
-    console.log('6. Resultado actualización perfil:', profileError ? 'Error' : 'Éxito')
-
     if (profileError) {
       console.error('Error actualizando perfil:', profileError)
       // No eliminamos el usuario ya que el perfil ya existe
@@ -87,7 +76,6 @@ export async function POST(request: Request) {
     }
 
     // Ya no forzamos la confirmación del email - el usuario deberá verificarlo por correo electrónico
-    console.log('7. Email pendiente de verificación por el usuario')
 
     return NextResponse.json({
       success: true,

@@ -46,6 +46,7 @@ interface Contenido {
 export default function AsignaturaAlumnoPage({ params }: { params: { id: string } }) {
   const [secciones, setSecciones] = useState<Seccion[]>([])
   const [openSecciones, setOpenSecciones] = useState<{ [id: string]: boolean }>({})
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   // Abrir todas las secciones por defecto cuando cambian
   useEffect(() => {
@@ -57,6 +58,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
       });
     }
   }, [secciones]);
+  
   const router = useRouter()
   const [curso, setCurso] = useState<Curso | null>(null)
   const [currentPath, setCurrentPath] = useState<string>("");
@@ -331,6 +333,15 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <button
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                title={sidebarCollapsed ? "Expandir sidebar" : "Contraer sidebar"}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              </button>
+              <button
                 onClick={() => router.push('/alumno')}
                 className="mr-4 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
@@ -368,26 +379,29 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
 
       <div className="flex pt-16"> {/* Added padding-top to account for fixed header */}
         {/* Sidebar - Fixed */}
-        <div className="w-64 fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto">
+        <div className={`${sidebarCollapsed ? 'w-16' : 'w-64'} fixed left-0 top-16 bottom-0 backdrop-blur-md bg-white/80 shadow-md border-r border-white/30 overflow-y-auto transition-all duration-300 ease-in-out`}>
           <nav className="mt-5 px-2">
             <div className="space-y-1">
               <div 
                 onClick={() => router.push('/alumno')}
                 className={`group flex items-center px-2 py-2 text-sm font-semibold rounded-lg shadow-sm cursor-pointer transition-all duration-150
                   ${currentPath === '/alumno' ? 'bg-gradient-to-r from-blue-100 to-blue-50 text-blue-900' : 'bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700'}`}
+                title={sidebarCollapsed ? "Inicio" : ""}
               >
-                <span className="w-6 h-6 bg-blue-400 rounded text-blue-900 text-xs flex items-center justify-center mr-3">
+                <span className="w-6 h-6 bg-blue-400 rounded text-blue-900 text-xs flex items-center justify-center mr-3 flex-shrink-0">
                   <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                   </svg>
                 </span>
-                Inicio
+                {!sidebarCollapsed && <span>Inicio</span>}
               </div>
 
               <div className="mt-8">
-                <h3 className="px-3 text-xs font-semibold text-blue-700 uppercase tracking-wider my-3">
-                  Mis Cursos
-                </h3>
+                {!sidebarCollapsed && (
+                  <h3 className="px-3 text-xs font-semibold text-blue-700 uppercase tracking-wider my-3">
+                    Mis Cursos
+                  </h3>
+                )}
                 <div className="mt-2 space-y-1">
                   {cursos.map((cursoItem) => (
                     <div 
@@ -398,13 +412,14 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
                           ? 'bg-blue-50 text-blue-700' 
                           : 'bg-white/0 hover:bg-blue-100/80 text-blue-900 hover:text-blue-700 shadow-sm'}
                       `}
+                      title={sidebarCollapsed ? cursoItem.nombre : ""}
                     >
-                      <span className={`w-6 h-6 rounded text-blue-900 text-xs flex items-center justify-center mr-3 ${
+                      <span className={`w-6 h-6 rounded text-blue-900 text-xs flex items-center justify-center mr-3 flex-shrink-0 ${
                         cursoItem.id === params.id ? 'bg-blue-200' : 'bg-blue-100'
                       }`}>
                         {cursoItem.nombre.charAt(0).toUpperCase()}
                       </span>
-                      <span className="truncate">{cursoItem.nombre}</span>
+                      {!sidebarCollapsed && <span className="truncate">{cursoItem.nombre}</span>}
                     </div>
                   ))}
                 </div>
@@ -414,7 +429,7 @@ export default function AsignaturaAlumnoPage({ params }: { params: { id: string 
         </div>
 
         {/* Main Content - Scrollable Area */}
-        <div className="flex-1 ml-64 overflow-y-auto h-[calc(100vh-4rem)]"> {/* height: 100vh - header height */}
+        <div className={`flex-1 ${sidebarCollapsed ? 'ml-16' : 'ml-64'} overflow-y-auto h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out`}> {/* height: 100vh - header height */}
           {/* Course Header - Card Style igual que profesor, con más separación */}
           <div className="max-w-6xl mx-auto px-6 pt-8">
       <div 

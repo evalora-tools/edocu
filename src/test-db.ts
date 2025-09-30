@@ -1,3 +1,5 @@
+// Este archivo es solo para testing local y está deshabilitado en producción
+/*
 import { supabase } from './lib/supabase'
 
 async function testVideoSessions() {
@@ -44,3 +46,9 @@ async function testVideoSessions() {
 // testVideoSessions()
 
 export { testVideoSessions }
+*/
+
+// Archivo de test deshabilitado en producción
+export const testVideoSessions = () => {
+  console.warn('Test functions are disabled in production')
+}

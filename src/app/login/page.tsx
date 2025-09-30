@@ -26,7 +26,6 @@ export default function Login() {
     setError('');
     
     try {
-      console.log('🔐 Intentando login para:', email);
       // Hacer login directamente con Supabase
       const { data, error: authError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
@@ -44,8 +43,6 @@ export default function Login() {
         return;
       }
 
-      console.log('✅ Login exitoso para:', data.user.email);
-
       // Obtener perfil del usuario
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -58,8 +55,6 @@ export default function Login() {
         setError('No se pudo cargar el perfil del usuario');
         return;
       }
-
-      console.log('✅ Perfil cargado:', profile);
 
       // Redirigir según el rol - NO resetear isLoading aquí para mantener la pantalla de carga durante la redirección
       switch (profile.role) {

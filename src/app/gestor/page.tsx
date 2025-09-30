@@ -205,7 +205,7 @@ export default function GestorPage() {
                 </div>
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-3">Gestionar Profesores</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">Añadir, editar y administrar profesores de tu academia</p>
+              <p className="text-gray-600 text-sm leading-relaxed">Añadir, editar y administrar profesores</p>
               <div className="mt-4 inline-flex items-center text-blue-600 font-medium text-sm group-hover:text-blue-700">
                 Administrar
                 <svg className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform duration-200" fill="none" viewBox="0 0 24 24" stroke="currentColor">

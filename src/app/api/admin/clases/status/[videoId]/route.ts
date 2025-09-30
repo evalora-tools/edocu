@@ -31,7 +31,6 @@ export async function GET(
     });
 
     const responseText = await response.text();
-    console.log('Status response:', responseText);
 
     if (!response.ok) {
       return NextResponse.json({ 

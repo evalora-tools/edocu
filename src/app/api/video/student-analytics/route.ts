@@ -60,10 +60,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Error al obtener sesiones de video' }, { status: 500 })
     }
 
-    console.log(`Total sesiones encontradas: ${videoSessions?.length || 0}`)
-
     if (!videoSessions || videoSessions.length === 0) {
-      console.log('No se encontraron sesiones de video')
       return NextResponse.json({
         success: true,
         data: [],
@@ -87,12 +84,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Error al obtener perfiles' }, { status: 500 })
     }
 
-    console.log(`Perfiles encontrados: ${profiles?.length || 0}`)
-    console.log(`Cursos asignados al profesor: ${JSON.stringify(profile.cursos_asignados)}`)
-
     // Obtener información de los contenidos
     const contenidoIds = [...new Set(videoSessions.map(s => s.contenido_id))]
-    console.log(`Contenidos únicos: ${contenidoIds.length}`)
     
     const { data: contenidos, error: contenidosError } = await supabase
       .from('contenidos')
@@ -140,8 +133,6 @@ export async function GET(request: NextRequest) {
       
       return true
     })
-
-    console.log(`Sesiones filtradas: ${filteredSessions.length}`)
 
     // Obtener eventos de video para las sesiones filtradas
     const sessionIds = filteredSessions.map(s => s.id)
@@ -293,8 +284,6 @@ export async function GET(request: NextRequest) {
         student.resumen.porcentaje_progreso_curso = contenidos.reduce((total, c) => total + c.porcentaje_promedio, 0) / contenidos.length
       }
     })
-
-    console.log(`Analytics procesados para ${Object.keys(analytics).length} estudiantes`)
 
     return NextResponse.json({
       success: true,

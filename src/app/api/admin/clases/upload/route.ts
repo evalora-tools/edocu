@@ -29,7 +29,6 @@ export async function POST(req: NextRequest) {
     });
 
     const vdoText = await vdoRes.text();
-    console.log('Respuesta de VdoCipher:', vdoText);
 
     if (!vdoRes.ok) {
       return NextResponse.json({ 
