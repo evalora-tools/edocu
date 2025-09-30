@@ -586,11 +586,28 @@ export default function ProfesorCursoPage() {
   const handleDelete = async (contenidoId: string) => {
     if (!confirm('¿Estás seguro de que quieres eliminar este contenido?')) return;
     try {
-      const { error } = await supabase
+      // Primero eliminamos todos los registros de video_watch_time relacionados
+      const { error: watchTimeError } = await supabase
+        .from('video_watch_time')
+        .delete()
+        .eq('contenido_id', contenidoId);
+      
+      if (watchTimeError) {
+        console.error('Error eliminando registros de video_watch_time:', watchTimeError);
+        throw watchTimeError;
+      }
+
+      // Después eliminamos el contenido
+      const { error: contenidoError } = await supabase
         .from('contenidos')
         .delete()
         .eq('id', contenidoId);
-      if (error) throw error;
+      
+      if (contenidoError) {
+        console.error('Error eliminando contenido:', contenidoError);
+        throw contenidoError;
+      }
+
       await recargarContenidos();
       setToast({ message: 'Contenido eliminado correctamente', type: 'success' });
     } catch (error) {
